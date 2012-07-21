@@ -15,11 +15,11 @@ namespace FormsHost {
 					return new SystemWindowTransp8(handle, formsHostHandle, setEmbeddable);
 				}
 				else {
-					return new SystemWindowTranspXPVst7(handle, formsHostHandle, setEmbeddable);
+					return new SystemWindowPopup(handle, formsHostHandle, setEmbeddable);
 				}
 			}
 			else {
-				return new SystemWindowNotTransparent(handle, formsHostHandle, setEmbeddable);
+				return new SystemWindowChild(handle, formsHostHandle, setEmbeddable);
 			}
 		}
 		//---------------------------------------------------------------------
@@ -74,23 +74,6 @@ namespace FormsHost {
 		//---------------------------------------------------------------------
 		public IntPtr[] AllHandles { get; set; }
 		//---------------------------------------------------------------------
-		/*
-		WinAPI.WindowState State {
-			get {
-				uint style = WinAPI.GetWindowLongPtr(Handle, (int) WinAPI.GWL.STYLE);
-				if ((style & (uint) WinAPI.WS.MAXIMIZE) != 0) {
-					return WinAPI.WindowState.Maximized;
-				}
-				else if ((style & (int) WinAPI.WS.MINIMIZE) != 0) {
-					return WinAPI.WindowState.Minimized;
-				}
-				else {
-					return WinAPI.WindowState.Normal;
-				}
-			}
-		}
-		*/
-		//---------------------------------------------------------------------
 		protected virtual void ModStyle (ref uint style, ref uint exStyle) { }
 		void SetEmbeddable () {
 			Visible = false;
@@ -101,16 +84,6 @@ namespace FormsHost {
 				(int) WinAPI.GWL.STYLE, new UIntPtr(modStyle));
 			WinAPI.SetWindowLongPtr(new HandleRef(this, Handle),
 				(int) WinAPI.GWL.EXSTYLE, new UIntPtr(modExStyle));
-			/*
-			WinAPI.SetWindowLongPtr(new HandleRef(this, _Handle),
-				(int) WinAPI.GWL.STYLE, new UIntPtr(
-				(uint) (WinAPI.WS.POPUP | WinAPI.WS.VISIBLE
-				| WinAPI.WS.CLIPCHILDREN | WinAPI.WS.CLIPSIBLINGS |
-				WinAPI.WS.TABSTOP)));
-			WinAPI.SetWindowLongPtr(new HandleRef(this, _Handle),
-				(int) WinAPI.GWL.EXSTYLE, new UIntPtr((uint) (WinAPI.WS_EX.CONTROLPARENT |
-					WinAPI.WS_EX.LAYERED | WinAPI.WS_EX.TOOLWINDOW)));
-			*/
 			_embeddable = true;
 			WinAPI.SetWindowPos(Handle, WinAPI.HWND.TOP, 0, 0,
 				_originalPosition.Width+1, _originalPosition.Height+1, (uint) WinAPI.SWP.NOZORDER);

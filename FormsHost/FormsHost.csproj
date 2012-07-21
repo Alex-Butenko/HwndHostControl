@@ -59,10 +59,8 @@
     </Compile>
     <Compile Include="SystemWindow.cs" />
     <Compile Include="SystemWindowChild.cs" />
-    <Compile Include="SystemWindowNotTransparent.cs" />
     <Compile Include="SystemWindowPopup.cs" />
     <Compile Include="SystemWindowTransp8.cs" />
-    <Compile Include="SystemWindowTranspXPVst7.cs" />
     <Compile Include="WinAPI.cs" />
     <Page Include="FormsHostWindow.xaml">
       <SubType>Designer</SubType>

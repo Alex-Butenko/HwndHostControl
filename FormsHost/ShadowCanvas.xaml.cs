@@ -7,9 +7,6 @@ using System.Windows.Interop;
 //-----------------------------------------------------------------------------
 namespace FormsHost {
 	public partial class ShadowCanvas : UserControl {
-		//ManagedWinapi.Windows.SystemWindow _dependentWindow;
-		System.Drawing.Point _lastCanvasLocation = System.Drawing.Point.Empty;
-		System.Drawing.Point _lastMainWindowLocation = System.Drawing.Point.Empty;
 		ISystemWindow _systemWindow;
 		IntPtr _handle ;
 		public ShadowCanvas (IntPtr dependentWindowHandle, FormsHostWindow mainWindow) {
@@ -18,47 +15,26 @@ namespace FormsHost {
 			_systemWindow = SystemWindow.GetSystemWindow(dependentWindowHandle, _handle, true);
 			_systemWindow.Embeddable = true;
 			_systemWindow.GrabWindow();
-			//meth.BeginInvoke(null, null);
 			HwndSource source = PresentationSource.FromVisual(mainWindow) as HwndSource;
 			source.AddHook(WndProc);
-			//_dependentWindow = new ManagedWinapi.Windows.SystemWindow(dependentWindowHandle);
-			//mainWindow.OnMove += MainWindow_OnMove;
-			//_lastMainWindowLocation = new System.Drawing.Point((int) mainWindow.Left, (int) mainWindow.Top);
-			//CorrectLocation();
-		}
-		//---------------------------------------------------------------------
-		void MainWindow_OnMove (object sender, FormsHostWindow.CoordinatesChangedEvevtArg e) {
-			/*
-			_lastMainWindowLocation = e.NewLocation;
-			CorrectLocation();
-			*/
 		}
 		//---------------------------------------------------------------------
 		void UserControl_LayoutUpdated (object sender, EventArgs e) {
 			Window wnd = Window.GetWindow(this);
 			Point point = TransformToAncestor(wnd).Transform(new Point(0, 0));
-			//_lastCanvasLocation = new System.Drawing.Point((int) point.X + 8, (int) point.Y + 30);
 			_systemWindow.OnReposition(new WinAPI.Position(
 				(int) point.X,
 				(int) point.Y,
 				(int) RenderSize.Width,
 				(int) RenderSize.Height, 
 				0, 0, false));
-			//CorrectLocation();
 		}
 		//---------------------------------------------------------------------
-		public void Close () {
-			_systemWindow.Close();
+		public void Release () {
+			_systemWindow.ReleaseWindow();
+			_systemWindow.Embeddable = false;
 		}
 		//---------------------------------------------------------------------
-		void CorrectLocation () {
-			/*
-			_dependentWindow.Location = new System.Drawing.Point(
-				_lastMainWindowLocation.X + _lastCanvasLocation.X,
-				_lastMainWindowLocation.Y + _lastCanvasLocation.Y);
-			_dependentWindow.Refresh();
-			*/
-		}
 		IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled) {
 			if (msg == 134 && wParam == IntPtr.Zero) {
 				handled = true;
@@ -69,7 +45,6 @@ namespace FormsHost {
 				int y = unchecked((short) ((uint) lParam >> 16));
 				Window wnd = Window.GetWindow(this);
 				Point point = TransformToAncestor(wnd).Transform(new Point(0, 0));
-				//_lastCanvasLocation = new System.Drawing.Point((int) point.X + 8, (int) point.Y + 30);
 				_systemWindow.OnReposition(new WinAPI.Position(
 					(int) point.X,
 					(int) point.Y,
@@ -77,14 +52,8 @@ namespace FormsHost {
 					(int) RenderSize.Height,
 					x, y, true));
 			}
-            // Handle messages...
             return IntPtr.Zero;
         }
-
-
-
-
-
 		//---------------------------------------------------------------------
 		public List<IntPtr> AllHandles {
 			get {
