@@ -19,8 +19,8 @@ namespace FormsHost {
 			_systemWindow.Embeddable = true;
 			_systemWindow.GrabWindow();
 			//meth.BeginInvoke(null, null);
-			//HwndSource source = PresentationSource.FromVisual(mainWindow) as HwndSource;
-			//source.AddHook(WndProc);
+			HwndSource source = PresentationSource.FromVisual(mainWindow) as HwndSource;
+			source.AddHook(WndProc);
 			//_dependentWindow = new ManagedWinapi.Windows.SystemWindow(dependentWindowHandle);
 			//mainWindow.OnMove += MainWindow_OnMove;
 			//_lastMainWindowLocation = new System.Drawing.Point((int) mainWindow.Left, (int) mainWindow.Top);
@@ -42,7 +42,8 @@ namespace FormsHost {
 				(int) point.X,
 				(int) point.Y,
 				(int) RenderSize.Width,
-				(int) RenderSize.Height));
+				(int) RenderSize.Height, 
+				0, 0, false));
 			//CorrectLocation();
 		}
 		//---------------------------------------------------------------------
@@ -58,22 +59,27 @@ namespace FormsHost {
 			_dependentWindow.Refresh();
 			*/
 		}
-		/*
-        IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled) {
-			if (msg == (int) WinAPI.WM.ENTERSIZEMOVE) {
-				if (!_grabbed) {
-					GrabForm();
-				}
+		IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled) {
+			if (msg == 134 && wParam == IntPtr.Zero) {
+				handled = true;
+				return (IntPtr) 1;
 			}
-			else if (msg == (int) WinAPI.WM.EXITSIZEMOVE) {
-				if (_grabbed) {
-					ReleaseForm();
-				}
+			if (msg == (int) WinAPI.WM.MOVE) {
+				int x = unchecked((short) lParam);
+				int y = unchecked((short) ((uint) lParam >> 16));
+				Window wnd = Window.GetWindow(this);
+				Point point = TransformToAncestor(wnd).Transform(new Point(0, 0));
+				//_lastCanvasLocation = new System.Drawing.Point((int) point.X + 8, (int) point.Y + 30);
+				_systemWindow.OnReposition(new WinAPI.Position(
+					(int) point.X,
+					(int) point.Y,
+					(int) RenderSize.Width,
+					(int) RenderSize.Height,
+					x, y, true));
 			}
             // Handle messages...
             return IntPtr.Zero;
         }
-		*/
 
 
 

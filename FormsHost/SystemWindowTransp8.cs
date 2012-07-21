@@ -16,16 +16,16 @@ namespace FormsHost {
 			set {
 				if (value) {
 					if (!_transparency) {
-						uint exStyle = WinAPI.GetWindowLongPtr(_Handle, (int) WinAPI.GWL.EXSTYLE);
-						WinAPI.SetWindowLongPtr(new HandleRef(this, _Handle),
+						uint exStyle = WinAPI.GetWindowLongPtr(Handle, (int) WinAPI.GWL.EXSTYLE);
+						WinAPI.SetWindowLongPtr(new HandleRef(this, Handle),
 							(int) WinAPI.GWL.EXSTYLE, new UIntPtr(exStyle | (uint) WinAPI.WS_EX.LAYERED));
-						bool asdf = WinAPI.SetLayeredWindowAttributes(_Handle, _originalCrKey, _originalOpacity, _originalDwFlags);
+						bool asdf = WinAPI.SetLayeredWindowAttributes(Handle, _originalCrKey, _originalOpacity, _originalDwFlags);
 					}
 				}
 				else if (_transparency) {
-					WinAPI.GetLayeredWindowAttributes(_Handle, out _originalCrKey, out _originalOpacity, out _originalDwFlags);
-					uint exStyle = WinAPI.GetWindowLongPtr(_Handle, (int) WinAPI.GWL.EXSTYLE);
-					IntPtr asdf = WinAPI.SetWindowLongPtr(new HandleRef(this, _Handle),
+					WinAPI.GetLayeredWindowAttributes(Handle, out _originalCrKey, out _originalOpacity, out _originalDwFlags);
+					uint exStyle = WinAPI.GetWindowLongPtr(Handle, (int) WinAPI.GWL.EXSTYLE);
+					IntPtr asdf = WinAPI.SetWindowLongPtr(new HandleRef(this, Handle),
 						(int) WinAPI.GWL.EXSTYLE, new UIntPtr(exStyle ^ (uint) WinAPI.WS_EX.LAYERED));
 				}
 				_transparency = value;

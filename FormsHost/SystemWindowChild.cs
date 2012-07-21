@@ -9,7 +9,7 @@ namespace FormsHost {
 		public SystemWindowChild (IntPtr handle, IntPtr formsHostHandle, bool setEmbeddable) :
 			base(handle, formsHostHandle, setEmbeddable) { }
 		public virtual bool SetParent (IntPtr handle) {
-			return WinAPI.SetParent(_Handle, handle) != IntPtr.Zero;
+			return WinAPI.SetParent(Handle, handle) != IntPtr.Zero;
 		}
 		//---------------------------------------------------------------------
 		public override void GrabWindow () {
@@ -21,12 +21,13 @@ namespace FormsHost {
 		}
 		//---------------------------------------------------------------------
 		public override void OnReposition (WinAPI.Position position) {
-			WinAPI.SetWindowPos(_Handle, WinAPI.HWND.TOP, position.X, position.Y,
-				position.Width, position.Height, (uint) (WinAPI.SWP.NOZORDER |
+			WinAPI.SetWindowPos(Handle, WinAPI.HWND.TOP, position.X, position.Y,
+				position.Width, position.Height + 100, (uint) (WinAPI.SWP.NOZORDER |
 				WinAPI.SWP.NOACTIVATE));
 		}
+		//---------------------------------------------------------------------
 		protected override void ModStyle (ref uint style, ref uint exStyle) {
-			style = (style | (uint) WinAPI.WS.CHILD) ^
+			style = (style/* | (uint) WinAPI.WS.CHILD*/) ^
 			(uint) (WinAPI.WS.BORDER | WinAPI.WS.SYSMENU | WinAPI.WS.CAPTION |
 			WinAPI.WS.THICKFRAME | WinAPI.WS.VISIBLE);
 			exStyle = exStyle | (uint) (WinAPI.WS_EX.TOOLWINDOW | WinAPI.WS_EX.CONTROLPARENT);

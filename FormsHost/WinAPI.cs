@@ -937,7 +937,7 @@ namespace FormsHost {
 		[return: MarshalAs(UnmanagedType.Bool)]
 		public static extern bool ShowWindow (IntPtr hWnd, SW nCmdShow);
 		[DllImport("user32.dll")]
-		public static extern bool CloseWindow (IntPtr hWnd);
+		public static extern bool DestroyWindow (IntPtr hWnd);
 		[DllImport("user32.dll", SetLastError = true)]
 		public static extern IntPtr SetParent (IntPtr hWndChild, IntPtr hWndNewParent);
 		public enum GWL : int {
@@ -1407,21 +1407,27 @@ namespace FormsHost {
 			public int left, top, right, bottom;
 		}
 		public class Position {
-			public Position (int x, int y, int width, int height) {
+			public Position (int x, int y, int width, int height, int globalX, int globalY, bool global) {
 				X = x;
 				Y = y;
 				Width = width;
 				Height = height;
+				GlobalX = globalX;
+				GlobalY = globalY;
+				Global = global;
 			}
 			public Position (WinAPI.RECT rect) : this(
 				rect.left,
 				rect.top,
 				rect.right - rect.left,
-				rect.bottom - rect.top) { }
+				rect.bottom - rect.top, 0, 0, false) { }
 			public readonly int X;
 			public readonly int Y;
 			public readonly int Width;
 			public readonly int Height;
+			public readonly int GlobalX;
+			public readonly int GlobalY;
+			public readonly bool Global;
 		}
 		[DllImport("user32.dll", CharSet = CharSet.Auto)]
 		public static extern IntPtr SendMessage (HandleRef hWnd, int msg, IntPtr wParam, IntPtr lParam);

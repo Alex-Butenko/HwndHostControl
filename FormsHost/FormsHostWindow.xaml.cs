@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Automation;
+using System.Windows.Controls;
 using System.Windows.Interop;
 //-----------------------------------------------------------------------------
 namespace FormsHost {
@@ -21,6 +22,8 @@ namespace FormsHost {
 			_canvases.Add(canvas);
 			//canvas.GrabForm();
 			//canvas.ReleaseForm();
+			//TextBox tb = new TextBox();
+			//GridMain2.Children.Add(tb);
 		}
 		//---------------------------------------------------------------------
 		void Window_LocationChanged (object sender, EventArgs e) {
@@ -48,9 +51,7 @@ namespace FormsHost {
 		const UInt32 SWP_NOACTIVATE = 0x0010;
 		//---------------------------------------------------------------------
 		void Window_Closing (object sender, System.ComponentModel.CancelEventArgs e) {
-			foreach (ShadowCanvas sc in _canvases) {
-				sc.Close();
-			}
+			WinAPI.DestroyWindow((new WindowInteropHelper(this)).Handle);
 			Environment.Exit(0);
 		}
 
