@@ -9,7 +9,7 @@ namespace FormsHost {
 	public partial class ShadowCanvas : UserControl {
 		ISystemWindow _systemWindow;
 		IntPtr _handle ;
-		public ShadowCanvas (IntPtr dependentWindowHandle, FormsHostWindow mainWindow) {
+		public ShadowCanvas (IntPtr dependentWindowHandle, FormsHostWindow mainWindow, bool setEmbeddable) {
 			InitializeComponent();
 			_handle = (new WindowInteropHelper(mainWindow)).Handle;
 			_systemWindow = SystemWindow.GetSystemWindow(dependentWindowHandle, _handle, true);

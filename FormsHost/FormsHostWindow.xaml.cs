@@ -15,25 +15,16 @@ namespace FormsHost {
 		}
 		//---------------------------------------------------------------------
 		public void AddControl (IntPtr handle) {
-			ShadowCanvas canvas = new ShadowCanvas(handle, this);
+			ShadowCanvas canvas = new ShadowCanvas(handle, this, true);
 			GridMain1.Children.Add(canvas);
 			_canvases.Add(canvas);
-		}
-		//---------------------------------------------------------------------
-		public event EventHandler<CoordinatesChangedEvevtArg> OnMove;
-		public class CoordinatesChangedEvevtArg : EventArgs {
-			public readonly System.Drawing.Point NewLocation;
-			public CoordinatesChangedEvevtArg (System.Drawing.Point location) {
-				NewLocation = location;
-			}
 		}
 		//---------------------------------------------------------------------
 		void Window_Closing (object sender, System.ComponentModel.CancelEventArgs e) {
 			foreach (ShadowCanvas sc in _canvases) {
 				sc.Release();
-				WinAPI.DestroyWindow((new WindowInteropHelper(this)).Handle);
-				Environment.Exit(0);
 			}
+			Environment.Exit(0);
 		}
 	}
 }
