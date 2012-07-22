@@ -3,6 +3,455 @@ using System.Runtime.InteropServices;
 
 namespace FormsHost {
 	public static class WinAPI {
+		[DllImport("user32.dll")]
+		public static extern bool ClientToScreen (IntPtr hWnd, ref WinAPI.Point lpPoint);
+		[DllImport("user32.dll")]
+		public static extern bool SetWindowPos (IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+		[DllImport("user32.dll", SetLastError = true)]
+		public static extern uint GetWindowLongPtr (IntPtr hWnd, int nIndex);
+		public static IntPtr SetWindowLongPtr (HandleRef hWnd, int nIndex, UIntPtr dwNewLong) {
+			if (IntPtr.Size == 8)
+				return SetWindowLongPtr64(hWnd, nIndex, dwNewLong);
+			else
+				return new IntPtr(SetWindowLong32(hWnd, nIndex, dwNewLong.ToUInt32()));
+		}
+		[DllImport("user32.dll", EntryPoint = "SetWindowLong")]
+		public static extern int SetWindowLong32 (HandleRef hWnd, int nIndex, uint dwNewLong);
+		[DllImport("user32.dll", EntryPoint = "SetWindowLongPtr")]
+		public static extern IntPtr SetWindowLongPtr64 (HandleRef hWnd, int nIndex, UIntPtr dwNewLong);
+		[DllImport("user32.dll")]
+		[return: MarshalAs(UnmanagedType.Bool)]
+		public static extern bool ShowWindow (IntPtr hWnd, SW nCmdShow);
+		[DllImport("user32.dll")]
+		public static extern bool DestroyWindow (IntPtr hWnd);
+		[DllImport("user32.dll", SetLastError = true)]
+		public static extern IntPtr SetParent (IntPtr hWndChild, IntPtr hWndNewParent);
+		[DllImport("user32.dll")]
+		public static extern bool SetLayeredWindowAttributes (IntPtr hwnd, uint crKey, byte bAlpha, uint dwFlags);
+		[DllImport("user32.dll", SetLastError = true)]
+		public static extern bool GetLayeredWindowAttributes (IntPtr hwnd, out uint crKey, out byte bAlpha, out uint dwFlags);
+		[DllImport("user32.dll")]
+		public static extern bool RedrawWindow (IntPtr hWnd, IntPtr lprcUpdate, IntPtr hrgnUpdate, RDW flags);
+		[DllImport("user32.dll", CharSet = CharSet.Auto)]
+		public static extern IntPtr SendMessage (HandleRef hWnd, int msg, IntPtr wParam, IntPtr lParam);
+		[DllImport("user32.dll")]
+		[return: MarshalAs(UnmanagedType.Bool)]
+		public static extern bool GetWindowRect (HandleRef hwnd, out RECT lpRect);
+		public enum GWL : int {
+			/// <summary>
+			/// Retrieves the extended window styles.
+			/// </summary>
+			EXSTYLE = -20,
+			/// <summary>
+			/// Retrieves a handle to the application instance.
+			/// </summary>
+			HINSTANCE = -6,
+			/// <summary>
+			/// Retrieves a handle to the parent window, if any.
+			/// </summary>
+			HWNDPARENT = -8,
+			/// <summary>
+			/// Retrieves the identifier of the window.
+			/// </summary>
+			ID = -12,
+			/// <summary>
+			/// Retrieves the window styles.
+			/// </summary>
+			STYLE = -16,
+			/// <summary>
+			/// Retrieves the user data associated with the window. This data is intended for use by the application that created the window. Its value is initially zero.
+			/// </summary>
+			USERDATA = -21,
+			/// <summary>
+			/// Retrieves the address of the window procedure, or a handle representing the address of the window procedure. You must use the CallWindowProc function to call the window procedure.
+			/// </summary>
+			WNDPROC = -4
+		}
+		public enum SWP {
+			/// <summary>
+			/// If the calling thread and the thread that owns the window are attached to different input queues, the system posts the request to the thread that owns the window. This prevents the calling thread from blocking its execution while other threads process the request.
+			/// </summary>
+			ASYNCWINDOWPOS = 0x4000,
+			/// <summary>
+			/// Prevents generation of the WM_SYNCPAINT message.
+			/// </summary>
+			DEFERERASE = 0x2000,
+			/// <summary>
+			/// Draws a frame (defined in the window's class description) around the window.
+			/// </summary>
+			DRAWFRAME = 0x0020,
+			/// <summary>
+			/// Applies new frame styles set using the SetWindowLong function. Sends a WM_NCCALCSIZE message to the window, even if the window's size is not being changed. If this flag is not specified, WM_NCCALCSIZE is sent only when the window's size is being changed.
+			/// </summary>
+			FRAMECHANGED = 0x0020,
+			/// <summary>
+			/// Hides the window.
+			/// </summary>
+			HIDEWINDOW = 0x0080,
+			/// <summary>
+			/// Does not activate the window. If this flag is not set, the window is activated and moved to the top of either the topmost or non-topmost group (depending on the setting of the hWndInsertAfter parameter).
+			/// </summary>
+			NOACTIVATE = 0x0010,
+			/// <summary>
+			/// Discards the entire contents of the client area. If this flag is not specified, the valid contents of the client area are saved and copied back into the client area after the window is sized or repositioned.
+			/// </summary>
+			NOCOPYBITS = 0x0100,
+			/// <summary>
+			/// Retains the current position (ignores X and Y parameters).
+			/// </summary>
+			NOMOVE = 0x0002,
+			/// <summary>
+			/// Does not change the owner window's position in the Z order.
+			/// </summary>
+			NOOWNERZORDER = 0x0200,
+			/// <summary>
+			/// Does not redraw changes. If this flag is set, no repainting of any kind occurs. This applies to the client area, the nonclient area (including the title bar and scroll bars), and any part of the parent window uncovered as a result of the window being moved. When this flag is set, the application must explicitly invalidate or redraw any parts of the window and parent window that need redrawing.
+			/// </summary>
+			NOREDRAW = 0x0008,
+			/// <summary>
+			/// Same as the SWP_NOOWNERZORDER flag.
+			/// </summary>
+			NOREPOSITION = 0x0200,
+			/// <summary>
+			/// Prevents the window from receiving the WM_WINDOWPOSCHANGING message.
+			/// </summary>
+			NOSENDCHANGING = 0x0400,
+			/// <summary>
+			/// Retains the current size (ignores the cx and cy parameters).
+			/// </summary>
+			NOSIZE = 0x0001,
+			/// <summary>
+			/// Retains the current Z order (ignores the hWndInsertAfter parameter).
+			/// </summary>
+			NOZORDER = 0x0004,
+			/// <summary>
+			/// Displays the window.
+			/// </summary>
+			SHOWWINDOW = 0x0040
+		}
+		public static class HWND {
+			/// <summary>
+			/// Places the window at the bottom of the Z order. If the hWnd parameter identifies a topmost window, the window loses its topmost status and is placed at the bottom of all other windows.
+			/// </summary>
+			public readonly static IntPtr BOTTOM = new IntPtr(1);
+			/// <summary>
+			/// Places the window above all non-topmost windows (that is, behind all topmost windows). This flag has no effect if the window is already a non-topmost window.
+			/// </summary>
+			public readonly static IntPtr NOTOPMOST = new IntPtr(-2);
+			/// <summary>
+			/// Places the window at the top of the Z order.
+			/// </summary>
+			public readonly static IntPtr TOP = new IntPtr(0);
+			/// <summary>
+			/// Places the window above all non-topmost windows. The window maintains its topmost position even when it is deactivated.
+			/// </summary>
+			public readonly static IntPtr TOPMOST = new IntPtr(-1);
+		}
+		public enum WS : uint {
+			/// <summary>
+			/// The window is an overlapped window. An overlapped window has a title bar and a border. Same as the WS_TILED style.
+			/// </summary>
+			OVERLAPPED = 0x00000000,
+			/// <summary>
+			/// The windows is a pop-up window. This style cannot be used with the WS_CHILD style.
+			/// </summary>
+			POPUP = 0x80000000,
+			/// <summary>
+			/// The window is a child window. A window with this style cannot have a menu bar. This style cannot be used with the WS_POPUP style.
+			/// </summary>
+			CHILD = 0x40000000,
+			/// <summary>
+			/// The window is initially minimized. Same as the WS_ICONIC style.
+			/// </summary>
+			MINIMIZE = 0x20000000,
+			/// <summary>
+			/// The window is initially visible.
+			/// This style can be turned on and off by using the ShowWindow or SetWindowPos function.
+			/// </summary>
+			VISIBLE = 0x10000000,
+			/// <summary>
+			/// The window is initially disabled. A disabled window cannot receive input from the user. To change this after a window has been created, use the EnableWindow function.
+			/// </summary>
+			DISABLED = 0x08000000,
+			/// <summary>
+			/// Clips child windows relative to each other; that is, when a particular child window receives a WM_PAINT message, the WS_CLIPSIBLINGS style clips all other overlapping child windows out of the region of the child window to be updated. If WS_CLIPSIBLINGS is not specified and child windows overlap, it is possible, when drawing within the client area of a child window, to draw within the client area of a neighboring child window.
+			/// </summary>
+			CLIPSIBLINGS = 0x04000000,
+			/// <summary>
+			/// Excludes the area occupied by child windows when drawing occurs within the parent window. This style is used when creating the parent window.
+			/// </summary>
+			CLIPCHILDREN = 0x02000000,
+			/// <summary>
+			/// The window is initially maximized.
+			/// </summary>
+			MAXIMIZE = 0x01000000,
+			/// <summary>
+			/// The window has a title bar (includes the WS_BORDER style).
+			/// </summary>
+			CAPTION = 0x00C00000,
+			/// <summary>
+			/// The window has a thin-line border.
+			/// </summary>
+			BORDER = 0x00800000,
+			/// <summary>
+			/// The window has a border of a style typically used with dialog boxes. A window with this style cannot have a title bar.
+			/// </summary>
+			DLGFRAME = 0x00400000,
+			/// <summary>
+			/// The window has a vertical scroll bar.
+			/// </summary>
+			VSCROLL = 0x00200000,
+			/// <summary>
+			/// The window has a horizontal scroll bar.
+			/// </summary>
+			HSCROLL = 0x00100000,
+			/// <summary>
+			/// The window has a window menu on its title bar. The WS_CAPTION style must also be specified.
+			/// </summary>
+			SYSMENU = 0x00080000,
+			/// <summary>
+			/// The window has a sizing border. Same as the WS_SIZEBOX style.
+			/// </summary>
+			THICKFRAME = 0x00040000,
+			/// <summary>
+			/// The window is the first control of a group of controls. The group consists of this first control and all controls defined after it, up to the next control with the WS_GROUP style. The first control in each group usually has the WS_TABSTOP style so that the user can move from group to group. The user can subsequently change the keyboard focus from one control in the group to the next control in the group by using the direction keys.
+			/// You can turn this style on and off to change dialog box navigation. To change this style after a window has been created, use the SetWindowLong function.
+			/// </summary>
+			GROUP = 0x00020000,
+			/// <summary>
+			/// The window is a control that can receive the keyboard focus when the user presses the TAB key. Pressing the TAB key changes the keyboard focus to the next control with the WS_TABSTOP style.
+			/// You can turn this style on and off to change dialog box navigation. To change this style after a window has been created, use the SetWindowLong function. For user-created windows and modeless dialogs to work with tab stops, alter the message loop to call the IsDialogMessage function.
+			/// </summary>
+			TABSTOP = 0x00010000,
+			/// <summary>
+			/// The window has a minimize button. Cannot be combined with the WS_EX_CONTEXTHELP style. The WS_SYSMENU style must also be specified.
+			/// </summary>
+			MINIMIZEBOX = 0x00020000,
+			/// <summary>
+			/// The window has a maximize button. Cannot be combined with the WS_EX_CONTEXTHELP style. The WS_SYSMENU style must also be specified.
+			/// </summary>
+			MAXIMIZEBOX = 0x00010000,
+			/// <summary>
+			/// The window is an overlapped window. An overlapped window has a title bar and a border. Same as the WS_OVERLAPPED style.
+			/// </summary>
+			TILED = OVERLAPPED,
+			/// <summary>
+			/// The window is initially minimized. Same as the WS_MINIMIZE style.
+			/// </summary>
+			ICONIC = MINIMIZE,
+			/// <summary>
+			/// The window has a sizing border. Same as the WS_THICKFRAME style.
+			/// </summary>
+			SIZEBOX = THICKFRAME,
+			/// <summary>
+			/// The window is an overlapped window. Same as the WS_OVERLAPPEDWINDOW style.
+			/// </summary>
+			TILEDWINDOW = (OVERLAPPED | CAPTION | SYSMENU | THICKFRAME | MINIMIZEBOX | MAXIMIZEBOX),
+			/// <summary>
+			/// The window is a pop-up window. The WS_CAPTION and WS_POPUPWINDOW styles must be combined to make the window menu visible.
+			/// </summary>
+			POPUPWINDOW = (POPUP | BORDER | SYSMENU),
+			/// <summary>
+			/// The window is an overlapped window. Same as the WS_TILEDWINDOW style.
+			/// </summary>
+			OVERLAPPEDWINDOW = (OVERLAPPED | CAPTION | SYSMENU | THICKFRAME | MINIMIZEBOX | MAXIMIZEBOX)
+		}
+		public enum WS_EX : uint {
+			/// <summary>
+			/// The window has a double border; the window can, optionally, be created with a title bar by specifying the WS_CAPTION style in the dwStyle parameter.
+			/// </summary>
+			DLGMODALFRAME = 0x1,
+			/// <summary>
+			/// The child window created with this style does not send the WM_PARENTNOTIFY message to its parent window when it is created or destroyed.
+			/// </summary>
+			NOPARENTNOTIFY = 0x4,
+			/// <summary>
+			/// The window should be placed above all non-topmost windows and should stay above them, even when the window is deactivated. To add or remove this style, use the SetWindowPos function.
+			/// </summary>
+			TOPMOST = 0x8,
+			/// <summary>
+			/// The window accepts drag-drop files.
+			/// </summary>
+			ACCEPTFILES = 0x10,
+			/// <summary>
+			/// The window should not be painted until siblings beneath the window (that were created by the same thread) have been painted. The window appears transparent because the bits of underlying sibling windows have already been painted.
+			/// To achieve transparency without these restrictions, use the SetWindowRgn function.
+			/// </summary>
+			TRANSPARENT = 0x20,
+			/// <summary>
+			/// The window is a MDI child window.
+			/// </summary>
+			MDICHILD = 0x40,
+			/// <summary>
+			/// The window is intended to be used as a floating toolbar. A tool window has a title bar that is shorter than a normal title bar, and the window title is drawn using a smaller font. A tool window does not appear in the taskbar or in the dialog that appears when the user presses ALT+TAB. If a tool window has a system menu, its icon is not displayed on the title bar. However, you can display the system menu by right-clicking or by typing ALT+SPACE.
+			/// </summary>
+			TOOLWINDOW = 0x80,
+			/// <summary>
+			/// The window has a border with a raised edge.
+			/// </summary>
+			WINDOWEDGE = 0x100,
+			/// <summary>
+			/// The window has a border with a sunken edge.
+			/// </summary>
+			CLIENTEDGE = 0x200,
+			/// <summary>
+			/// The title bar of the window includes a question mark. When the user clicks the question mark, the cursor changes to a question mark with a pointer. If the user then clicks a child window, the child receives a WM_HELP message. The child window should pass the message to the parent window procedure, which should call the WinHelp function using the HELP_WM_HELP command. The Help application displays a pop-up window that typically contains help for the child window.
+			/// WS_EX_CONTEXTHELP cannot be used with the WS_MAXIMIZEBOX or WS_MINIMIZEBOX styles.
+			/// </summary>
+			CONTEXTHELP = 0x400,
+			/// <summary>
+			/// The window has generic "right-aligned" properties. This depends on the window class. This style has an effect only if the shell language is Hebrew, Arabic, or another language that supports reading-order alignment; otherwise, the style is ignored.
+			/// Using the WS_EX_RIGHT style for static or edit controls has the same effect as using the SS_RIGHT or ES_RIGHT style, respectively. Using this style with button controls has the same effect as using BS_RIGHT and BS_RIGHTBUTTON styles.
+			/// </summary>
+			RIGHT = 0x1000,
+			/// <summary>
+			/// The window has generic left-aligned properties. This is the default.
+			/// </summary>
+			LEFT = 0x0,
+			/// <summary>
+			/// If the shell language is Hebrew, Arabic, or another language that supports reading-order alignment, the window text is displayed using right-to-left reading-order properties. For other languages, the style is ignored.
+			/// </summary>
+			RTLREADING = 0x2000,
+			/// <summary>
+			/// The window text is displayed using left-to-right reading-order properties. This is the default.
+			/// </summary>
+			LTRREADING = 0x0,
+			/// <summary>
+			/// If the shell language is Hebrew, Arabic, or another language that supports reading order alignment, the vertical scroll bar (if present) is to the left of the client area. For other languages, the style is ignored.
+			/// </summary>
+			LEFTSCROLLBAR = 0x4000,
+			/// <summary>
+			/// The vertical scroll bar (if present) is to the right of the client area. This is the default.
+			/// </summary>
+			RIGHTSCROLLBAR = 0x0,
+			/// <summary>
+			/// The window itself contains child windows that should take part in dialog box navigation. If this style is specified, the dialog manager recurses into children of this window when performing navigation operations such as handling the TAB key, an arrow key, or a keyboard mnemonic.
+			/// </summary>
+			CONTROLPARENT = 0x10000,
+			/// <summary>
+			/// The window has a three-dimensional border style intended to be used for items that do not accept user input.
+			/// </summary>
+			STATICEDGE = 0x20000,
+			/// <summary>
+			/// Forces a top-level window onto the taskbar when the window is visible.
+			/// </summary>
+			APPWINDOW = 0x40000,
+			/// <summary>
+			/// The window is an overlapped window.
+			/// </summary>
+			OVERLAPPEDWINDOW = WINDOWEDGE | CLIENTEDGE,
+			/// <summary>
+			/// The window is palette window, which is a modeless dialog box that presents an array of commands.
+			/// </summary>
+			PALETTEWINDOW = WINDOWEDGE | TOOLWINDOW | TOPMOST,
+			/// <summary>
+			/// The window is a layered window. This style cannot be used if the window has a class style of either CS_OWNDC or CS_CLASSDC.
+			/// Windows 8:  The WS_EX_LAYERED style is supported for top-level windows and child windows. Previous Windows versions support WS_EX_LAYERED only for top-level windows.
+			/// </summary>
+			LAYERED = 0x80000,
+			/// <summary>
+			/// The window does not pass its window layout to its child windows.
+			/// </summary>
+			NOINHERITLAYOUT = 0x100000,
+			/// <summary>
+			/// If the shell language is Hebrew, Arabic, or another language that supports reading order alignment, the horizontal origin of the window is on the right edge. Increasing horizontal values advance to the left.
+			/// </summary>
+			LAYOUTRTL = 0x400000,
+			/// <summary>
+			/// Paints all descendants of a window in bottom-to-top painting order using double-buffering. For more information, see Remarks. This cannot be used if the window has a class style of either CS_OWNDC or CS_CLASSDC.
+			/// </summary>
+			COMPOSITED = 0x2000000,
+			/// <summary>
+			/// A top-level window created with this style does not become the foreground window when the user clicks it. The system does not bring this window to the foreground when the user minimizes or closes the foreground window.
+			/// To activate the window, use the SetActiveWindow or SetForegroundWindow function.
+			/// The window does not appear on the taskbar by default. To force the window to appear on the taskbar, use the WS_EX_APPWINDOW style.
+			/// </summary>
+			NOACTIVATE = 0x8000000,
+		}
+		public enum WindowState {
+			Maximized,
+			Minimized,
+			Normal
+		}
+		public enum GWLP : int {
+			GWLP_HINSTANCE = -6,
+			GWLP_HWNDPARENT = -8,
+		}
+		public enum DWLP : int {
+			DWLP_USER = 0x8,
+			DWLP_MSGRESULT = 0x0,
+			DWLP_DLGPROC = 0x4
+		}
+		public enum SW : int {
+			/// <summary>
+			/// Hides the window and activates another window.
+			/// </summary>
+			Hide = 0,
+			/// <summary>
+			/// Activates and displays a window. If the window is minimized or 
+			/// maximized, the system restores it to its original size and position.
+			/// An application should specify this flag when displaying the window 
+			/// for the first time.
+			/// </summary>
+			Normal = 1,
+			/// <summary>
+			/// Activates the window and displays it as a minimized window.
+			/// </summary>
+			ShowMinimized = 2,
+			/// <summary>
+			/// Maximizes the specified window.
+			/// </summary>
+			Maximize = 3, // is this the right value?
+			/// <summary>
+			/// Activates the window and displays it as a maximized window.
+			/// </summary>       
+			ShowMaximized = 3,
+			/// <summary>
+			/// Displays a window in its most recent size and position. This value 
+			/// is similar to <see cref="Win32.ShowWindowCommand.Normal"/>, except 
+			/// the window is not activated.
+			/// </summary>
+			ShowNoActivate = 4,
+			/// <summary>
+			/// Activates the window and displays it in its current size and position. 
+			/// </summary>
+			Show = 5,
+			/// <summary>
+			/// Minimizes the specified window and activates the next top-level 
+			/// window in the Z order.
+			/// </summary>
+			Minimize = 6,
+			/// <summary>
+			/// Displays the window as a minimized window. This value is similar to
+			/// <see cref="Win32.ShowWindowCommand.ShowMinimized"/>, except the 
+			/// window is not activated.
+			/// </summary>
+			ShowMinNoActive = 7,
+			/// <summary>
+			/// Displays the window in its current size and position. This value is 
+			/// similar to <see cref="Win32.ShowWindowCommand.Show"/>, except the 
+			/// window is not activated.
+			/// </summary>
+			ShowNA = 8,
+			/// <summary>
+			/// Activates and displays the window. If the window is minimized or 
+			/// maximized, the system restores it to its original size and position. 
+			/// An application should specify this flag when restoring a minimized window.
+			/// </summary>
+			Restore = 9,
+			/// <summary>
+			/// Sets the show state based on the SW_* value specified in the 
+			/// STARTUPINFO structure passed to the CreateProcess function by the 
+			/// program that started the application.
+			/// </summary>
+			ShowDefault = 10,
+			/// <summary>
+			///  <b>Windows 2000/XP:</b> Minimizes a window, even if the thread 
+			/// that owns the window is not responding. This flag should only be 
+			/// used when minimizing windows from a different thread.
+			/// </summary>
+			ForceMinimize = 11
+		}
 		/// <summary>
 		/// Windows Messages
 		/// Defined in winuser.h from Windows SDK v6.1
@@ -919,449 +1368,6 @@ namespace FormsHost {
 			/// </summary>
 			SYSTIMER = 0x118
 		}
-		[DllImport("user32.dll")]
-		public static extern bool SetWindowPos (IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
-		[DllImport("user32.dll", SetLastError = true)]
-		public static extern uint GetWindowLongPtr (IntPtr hWnd, int nIndex);
-		public static IntPtr SetWindowLongPtr (HandleRef hWnd, int nIndex, UIntPtr dwNewLong) {
-			if (IntPtr.Size == 8)
-				return SetWindowLongPtr64(hWnd, nIndex, dwNewLong);
-			else
-				return new IntPtr(SetWindowLong32(hWnd, nIndex, dwNewLong.ToUInt32()));
-		}
-		[DllImport("user32.dll", EntryPoint = "SetWindowLong")]
-		public static extern int SetWindowLong32 (HandleRef hWnd, int nIndex, uint dwNewLong);
-		[DllImport("user32.dll", EntryPoint = "SetWindowLongPtr")]
-		public static extern IntPtr SetWindowLongPtr64 (HandleRef hWnd, int nIndex, UIntPtr dwNewLong);
-		[DllImport("user32.dll")]
-		[return: MarshalAs(UnmanagedType.Bool)]
-		public static extern bool ShowWindow (IntPtr hWnd, SW nCmdShow);
-		[DllImport("user32.dll")]
-		public static extern bool DestroyWindow (IntPtr hWnd);
-		[DllImport("user32.dll", SetLastError = true)]
-		public static extern IntPtr SetParent (IntPtr hWndChild, IntPtr hWndNewParent);
-		public enum GWL : int {
-			/// <summary>
-			/// Retrieves the extended window styles.
-			/// </summary>
-			EXSTYLE = -20,
-			/// <summary>
-			/// Retrieves a handle to the application instance.
-			/// </summary>
-			HINSTANCE = -6,
-			/// <summary>
-			/// Retrieves a handle to the parent window, if any.
-			/// </summary>
-			HWNDPARENT = -8,
-			/// <summary>
-			/// Retrieves the identifier of the window.
-			/// </summary>
-			ID = -12,
-			/// <summary>
-			/// Retrieves the window styles.
-			/// </summary>
-			STYLE = -16,
-			/// <summary>
-			/// Retrieves the user data associated with the window. This data is intended for use by the application that created the window. Its value is initially zero.
-			/// </summary>
-			USERDATA = -21,
-			/// <summary>
-			/// Retrieves the address of the window procedure, or a handle representing the address of the window procedure. You must use the CallWindowProc function to call the window procedure.
-			/// </summary>
-			WNDPROC = -4
-		}
-		public enum SWP {
-			/// <summary>
-			/// If the calling thread and the thread that owns the window are attached to different input queues, the system posts the request to the thread that owns the window. This prevents the calling thread from blocking its execution while other threads process the request.
-			/// </summary>
-			ASYNCWINDOWPOS = 0x4000,
-			/// <summary>
-			/// Prevents generation of the WM_SYNCPAINT message.
-			/// </summary>
-			DEFERERASE = 0x2000,
-			/// <summary>
-			/// Draws a frame (defined in the window's class description) around the window.
-			/// </summary>
-			DRAWFRAME = 0x0020,
-			/// <summary>
-			/// Applies new frame styles set using the SetWindowLong function. Sends a WM_NCCALCSIZE message to the window, even if the window's size is not being changed. If this flag is not specified, WM_NCCALCSIZE is sent only when the window's size is being changed.
-			/// </summary>
-			FRAMECHANGED = 0x0020,
-			/// <summary>
-			/// Hides the window.
-			/// </summary>
-			HIDEWINDOW = 0x0080,
-			/// <summary>
-			/// Does not activate the window. If this flag is not set, the window is activated and moved to the top of either the topmost or non-topmost group (depending on the setting of the hWndInsertAfter parameter).
-			/// </summary>
-			NOACTIVATE = 0x0010,
-			/// <summary>
-			/// Discards the entire contents of the client area. If this flag is not specified, the valid contents of the client area are saved and copied back into the client area after the window is sized or repositioned.
-			/// </summary>
-			NOCOPYBITS = 0x0100,
-			/// <summary>
-			/// Retains the current position (ignores X and Y parameters).
-			/// </summary>
-			NOMOVE = 0x0002,
-			/// <summary>
-			/// Does not change the owner window's position in the Z order.
-			/// </summary>
-			NOOWNERZORDER = 0x0200,
-			/// <summary>
-			/// Does not redraw changes. If this flag is set, no repainting of any kind occurs. This applies to the client area, the nonclient area (including the title bar and scroll bars), and any part of the parent window uncovered as a result of the window being moved. When this flag is set, the application must explicitly invalidate or redraw any parts of the window and parent window that need redrawing.
-			/// </summary>
-			NOREDRAW = 0x0008,
-			/// <summary>
-			/// Same as the SWP_NOOWNERZORDER flag.
-			/// </summary>
-			NOREPOSITION = 0x0200,
-			/// <summary>
-			/// Prevents the window from receiving the WM_WINDOWPOSCHANGING message.
-			/// </summary>
-			NOSENDCHANGING = 0x0400,
-			/// <summary>
-			/// Retains the current size (ignores the cx and cy parameters).
-			/// </summary>
-			NOSIZE = 0x0001,
-			/// <summary>
-			/// Retains the current Z order (ignores the hWndInsertAfter parameter).
-			/// </summary>
-			NOZORDER = 0x0004,
-			/// <summary>
-			/// Displays the window.
-			/// </summary>
-			SHOWWINDOW = 0x0040
-		}
-		public static class HWND {
-			/// <summary>
-			/// Places the window at the bottom of the Z order. If the hWnd parameter identifies a topmost window, the window loses its topmost status and is placed at the bottom of all other windows.
-			/// </summary>
-			public readonly static IntPtr BOTTOM = new IntPtr(1);
-			/// <summary>
-			/// Places the window above all non-topmost windows (that is, behind all topmost windows). This flag has no effect if the window is already a non-topmost window.
-			/// </summary>
-			public readonly static IntPtr NOTOPMOST = new IntPtr(-2);
-			/// <summary>
-			/// Places the window at the top of the Z order.
-			/// </summary>
-			public readonly static IntPtr TOP = new IntPtr(0);
-			/// <summary>
-			/// Places the window above all non-topmost windows. The window maintains its topmost position even when it is deactivated.
-			/// </summary>
-			public readonly static IntPtr TOPMOST = new IntPtr(-1);
-		}
-		public enum WS : uint {
-			/// <summary>
-			/// The window is an overlapped window. An overlapped window has a title bar and a border. Same as the WS_TILED style.
-			/// </summary>
-			OVERLAPPED = 0x00000000,
-			/// <summary>
-			/// The windows is a pop-up window. This style cannot be used with the WS_CHILD style.
-			/// </summary>
-			POPUP = 0x80000000,
-			/// <summary>
-			/// The window is a child window. A window with this style cannot have a menu bar. This style cannot be used with the WS_POPUP style.
-			/// </summary>
-			CHILD = 0x40000000,
-			/// <summary>
-			/// The window is initially minimized. Same as the WS_ICONIC style.
-			/// </summary>
-			MINIMIZE = 0x20000000,
-			/// <summary>
-			/// The window is initially visible.
-			/// This style can be turned on and off by using the ShowWindow or SetWindowPos function.
-			/// </summary>
-			VISIBLE = 0x10000000,
-			/// <summary>
-			/// The window is initially disabled. A disabled window cannot receive input from the user. To change this after a window has been created, use the EnableWindow function.
-			/// </summary>
-			DISABLED = 0x08000000,
-			/// <summary>
-			/// Clips child windows relative to each other; that is, when a particular child window receives a WM_PAINT message, the WS_CLIPSIBLINGS style clips all other overlapping child windows out of the region of the child window to be updated. If WS_CLIPSIBLINGS is not specified and child windows overlap, it is possible, when drawing within the client area of a child window, to draw within the client area of a neighboring child window.
-			/// </summary>
-			CLIPSIBLINGS = 0x04000000,
-			/// <summary>
-			/// Excludes the area occupied by child windows when drawing occurs within the parent window. This style is used when creating the parent window.
-			/// </summary>
-			CLIPCHILDREN = 0x02000000,
-			/// <summary>
-			/// The window is initially maximized.
-			/// </summary>
-			MAXIMIZE = 0x01000000,
-			/// <summary>
-			/// The window has a title bar (includes the WS_BORDER style).
-			/// </summary>
-			CAPTION = 0x00C00000,
-			/// <summary>
-			/// The window has a thin-line border.
-			/// </summary>
-			BORDER = 0x00800000,
-			/// <summary>
-			/// The window has a border of a style typically used with dialog boxes. A window with this style cannot have a title bar.
-			/// </summary>
-			DLGFRAME = 0x00400000,
-			/// <summary>
-			/// The window has a vertical scroll bar.
-			/// </summary>
-			VSCROLL = 0x00200000,
-			/// <summary>
-			/// The window has a horizontal scroll bar.
-			/// </summary>
-			HSCROLL = 0x00100000,
-			/// <summary>
-			/// The window has a window menu on its title bar. The WS_CAPTION style must also be specified.
-			/// </summary>
-			SYSMENU = 0x00080000,
-			/// <summary>
-			/// The window has a sizing border. Same as the WS_SIZEBOX style.
-			/// </summary>
-			THICKFRAME = 0x00040000,
-			/// <summary>
-			/// The window is the first control of a group of controls. The group consists of this first control and all controls defined after it, up to the next control with the WS_GROUP style. The first control in each group usually has the WS_TABSTOP style so that the user can move from group to group. The user can subsequently change the keyboard focus from one control in the group to the next control in the group by using the direction keys.
-			/// You can turn this style on and off to change dialog box navigation. To change this style after a window has been created, use the SetWindowLong function.
-			/// </summary>
-			GROUP = 0x00020000,
-			/// <summary>
-			/// The window is a control that can receive the keyboard focus when the user presses the TAB key. Pressing the TAB key changes the keyboard focus to the next control with the WS_TABSTOP style.
-			/// You can turn this style on and off to change dialog box navigation. To change this style after a window has been created, use the SetWindowLong function. For user-created windows and modeless dialogs to work with tab stops, alter the message loop to call the IsDialogMessage function.
-			/// </summary>
-			TABSTOP = 0x00010000,
-			/// <summary>
-			/// The window has a minimize button. Cannot be combined with the WS_EX_CONTEXTHELP style. The WS_SYSMENU style must also be specified.
-			/// </summary>
-			MINIMIZEBOX = 0x00020000,
-			/// <summary>
-			/// The window has a maximize button. Cannot be combined with the WS_EX_CONTEXTHELP style. The WS_SYSMENU style must also be specified.
-			/// </summary>
-			MAXIMIZEBOX = 0x00010000,
-			/// <summary>
-			/// The window is an overlapped window. An overlapped window has a title bar and a border. Same as the WS_OVERLAPPED style.
-			/// </summary>
-			TILED = OVERLAPPED,
-			/// <summary>
-			/// The window is initially minimized. Same as the WS_MINIMIZE style.
-			/// </summary>
-			ICONIC = MINIMIZE,
-			/// <summary>
-			/// The window has a sizing border. Same as the WS_THICKFRAME style.
-			/// </summary>
-			SIZEBOX = THICKFRAME,
-			/// <summary>
-			/// The window is an overlapped window. Same as the WS_OVERLAPPEDWINDOW style.
-			/// </summary>
-			TILEDWINDOW = (OVERLAPPED | CAPTION | SYSMENU | THICKFRAME | MINIMIZEBOX | MAXIMIZEBOX),
-			/// <summary>
-			/// The window is a pop-up window. The WS_CAPTION and WS_POPUPWINDOW styles must be combined to make the window menu visible.
-			/// </summary>
-			POPUPWINDOW = (POPUP | BORDER | SYSMENU),
-			/// <summary>
-			/// The window is an overlapped window. Same as the WS_TILEDWINDOW style.
-			/// </summary>
-			OVERLAPPEDWINDOW = (OVERLAPPED | CAPTION | SYSMENU | THICKFRAME | MINIMIZEBOX | MAXIMIZEBOX)
-		}
-		public enum WS_EX : uint {
-			/// <summary>
-			/// The window has a double border; the window can, optionally, be created with a title bar by specifying the WS_CAPTION style in the dwStyle parameter.
-			/// </summary>
-			DLGMODALFRAME = 0x1,
-			/// <summary>
-			/// The child window created with this style does not send the WM_PARENTNOTIFY message to its parent window when it is created or destroyed.
-			/// </summary>
-			NOPARENTNOTIFY = 0x4,
-			/// <summary>
-			/// The window should be placed above all non-topmost windows and should stay above them, even when the window is deactivated. To add or remove this style, use the SetWindowPos function.
-			/// </summary>
-			TOPMOST = 0x8,
-			/// <summary>
-			/// The window accepts drag-drop files.
-			/// </summary>
-			ACCEPTFILES = 0x10,
-			/// <summary>
-			/// The window should not be painted until siblings beneath the window (that were created by the same thread) have been painted. The window appears transparent because the bits of underlying sibling windows have already been painted.
-			/// To achieve transparency without these restrictions, use the SetWindowRgn function.
-			/// </summary>
-			TRANSPARENT = 0x20,
-			/// <summary>
-			/// The window is a MDI child window.
-			/// </summary>
-			MDICHILD = 0x40,
-			/// <summary>
-			/// The window is intended to be used as a floating toolbar. A tool window has a title bar that is shorter than a normal title bar, and the window title is drawn using a smaller font. A tool window does not appear in the taskbar or in the dialog that appears when the user presses ALT+TAB. If a tool window has a system menu, its icon is not displayed on the title bar. However, you can display the system menu by right-clicking or by typing ALT+SPACE.
-			/// </summary>
-			TOOLWINDOW = 0x80,
-			/// <summary>
-			/// The window has a border with a raised edge.
-			/// </summary>
-			WINDOWEDGE = 0x100,
-			/// <summary>
-			/// The window has a border with a sunken edge.
-			/// </summary>
-			CLIENTEDGE = 0x200,
-			/// <summary>
-			/// The title bar of the window includes a question mark. When the user clicks the question mark, the cursor changes to a question mark with a pointer. If the user then clicks a child window, the child receives a WM_HELP message. The child window should pass the message to the parent window procedure, which should call the WinHelp function using the HELP_WM_HELP command. The Help application displays a pop-up window that typically contains help for the child window.
-			/// WS_EX_CONTEXTHELP cannot be used with the WS_MAXIMIZEBOX or WS_MINIMIZEBOX styles.
-			/// </summary>
-			CONTEXTHELP = 0x400,
-			/// <summary>
-			/// The window has generic "right-aligned" properties. This depends on the window class. This style has an effect only if the shell language is Hebrew, Arabic, or another language that supports reading-order alignment; otherwise, the style is ignored.
-			/// Using the WS_EX_RIGHT style for static or edit controls has the same effect as using the SS_RIGHT or ES_RIGHT style, respectively. Using this style with button controls has the same effect as using BS_RIGHT and BS_RIGHTBUTTON styles.
-			/// </summary>
-			RIGHT = 0x1000,
-			/// <summary>
-			/// The window has generic left-aligned properties. This is the default.
-			/// </summary>
-			LEFT = 0x0,
-			/// <summary>
-			/// If the shell language is Hebrew, Arabic, or another language that supports reading-order alignment, the window text is displayed using right-to-left reading-order properties. For other languages, the style is ignored.
-			/// </summary>
-			RTLREADING = 0x2000,
-			/// <summary>
-			/// The window text is displayed using left-to-right reading-order properties. This is the default.
-			/// </summary>
-			LTRREADING = 0x0,
-			/// <summary>
-			/// If the shell language is Hebrew, Arabic, or another language that supports reading order alignment, the vertical scroll bar (if present) is to the left of the client area. For other languages, the style is ignored.
-			/// </summary>
-			LEFTSCROLLBAR = 0x4000,
-			/// <summary>
-			/// The vertical scroll bar (if present) is to the right of the client area. This is the default.
-			/// </summary>
-			RIGHTSCROLLBAR = 0x0,
-			/// <summary>
-			/// The window itself contains child windows that should take part in dialog box navigation. If this style is specified, the dialog manager recurses into children of this window when performing navigation operations such as handling the TAB key, an arrow key, or a keyboard mnemonic.
-			/// </summary>
-			CONTROLPARENT = 0x10000,
-			/// <summary>
-			/// The window has a three-dimensional border style intended to be used for items that do not accept user input.
-			/// </summary>
-			STATICEDGE = 0x20000,
-			/// <summary>
-			/// Forces a top-level window onto the taskbar when the window is visible.
-			/// </summary>
-			APPWINDOW = 0x40000,
-			/// <summary>
-			/// The window is an overlapped window.
-			/// </summary>
-			OVERLAPPEDWINDOW = WINDOWEDGE | CLIENTEDGE,
-			/// <summary>
-			/// The window is palette window, which is a modeless dialog box that presents an array of commands.
-			/// </summary>
-			PALETTEWINDOW = WINDOWEDGE | TOOLWINDOW | TOPMOST,
-			/// <summary>
-			/// The window is a layered window. This style cannot be used if the window has a class style of either CS_OWNDC or CS_CLASSDC.
-			/// Windows 8:  The WS_EX_LAYERED style is supported for top-level windows and child windows. Previous Windows versions support WS_EX_LAYERED only for top-level windows.
-			/// </summary>
-			LAYERED = 0x80000,
-			/// <summary>
-			/// The window does not pass its window layout to its child windows.
-			/// </summary>
-			NOINHERITLAYOUT = 0x100000,
-			/// <summary>
-			/// If the shell language is Hebrew, Arabic, or another language that supports reading order alignment, the horizontal origin of the window is on the right edge. Increasing horizontal values advance to the left.
-			/// </summary>
-			LAYOUTRTL = 0x400000,
-			/// <summary>
-			/// Paints all descendants of a window in bottom-to-top painting order using double-buffering. For more information, see Remarks. This cannot be used if the window has a class style of either CS_OWNDC or CS_CLASSDC.
-			/// </summary>
-			COMPOSITED = 0x2000000,
-			/// <summary>
-			/// A top-level window created with this style does not become the foreground window when the user clicks it. The system does not bring this window to the foreground when the user minimizes or closes the foreground window.
-			/// To activate the window, use the SetActiveWindow or SetForegroundWindow function.
-			/// The window does not appear on the taskbar by default. To force the window to appear on the taskbar, use the WS_EX_APPWINDOW style.
-			/// </summary>
-			NOACTIVATE = 0x8000000,
-		}
-		public enum WindowState {
-			Maximized,
-			Minimized,
-			Normal
-		}
-		public enum GWLP : int {
-			GWLP_HINSTANCE = -6,
-			GWLP_HWNDPARENT = -8,
-		}
-		public enum DWLP : int {
-			DWLP_USER = 0x8,
-			DWLP_MSGRESULT = 0x0,
-			DWLP_DLGPROC = 0x4
-		}
-		public enum SW : int {
-			/// <summary>
-			/// Hides the window and activates another window.
-			/// </summary>
-			Hide = 0,
-			/// <summary>
-			/// Activates and displays a window. If the window is minimized or 
-			/// maximized, the system restores it to its original size and position.
-			/// An application should specify this flag when displaying the window 
-			/// for the first time.
-			/// </summary>
-			Normal = 1,
-			/// <summary>
-			/// Activates the window and displays it as a minimized window.
-			/// </summary>
-			ShowMinimized = 2,
-			/// <summary>
-			/// Maximizes the specified window.
-			/// </summary>
-			Maximize = 3, // is this the right value?
-			/// <summary>
-			/// Activates the window and displays it as a maximized window.
-			/// </summary>       
-			ShowMaximized = 3,
-			/// <summary>
-			/// Displays a window in its most recent size and position. This value 
-			/// is similar to <see cref="Win32.ShowWindowCommand.Normal"/>, except 
-			/// the window is not activated.
-			/// </summary>
-			ShowNoActivate = 4,
-			/// <summary>
-			/// Activates the window and displays it in its current size and position. 
-			/// </summary>
-			Show = 5,
-			/// <summary>
-			/// Minimizes the specified window and activates the next top-level 
-			/// window in the Z order.
-			/// </summary>
-			Minimize = 6,
-			/// <summary>
-			/// Displays the window as a minimized window. This value is similar to
-			/// <see cref="Win32.ShowWindowCommand.ShowMinimized"/>, except the 
-			/// window is not activated.
-			/// </summary>
-			ShowMinNoActive = 7,
-			/// <summary>
-			/// Displays the window in its current size and position. This value is 
-			/// similar to <see cref="Win32.ShowWindowCommand.Show"/>, except the 
-			/// window is not activated.
-			/// </summary>
-			ShowNA = 8,
-			/// <summary>
-			/// Activates and displays the window. If the window is minimized or 
-			/// maximized, the system restores it to its original size and position. 
-			/// An application should specify this flag when restoring a minimized window.
-			/// </summary>
-			Restore = 9,
-			/// <summary>
-			/// Sets the show state based on the SW_* value specified in the 
-			/// STARTUPINFO structure passed to the CreateProcess function by the 
-			/// program that started the application.
-			/// </summary>
-			ShowDefault = 10,
-			/// <summary>
-			///  <b>Windows 2000/XP:</b> Minimizes a window, even if the thread 
-			/// that owns the window is not responding. This flag should only be 
-			/// used when minimizing windows from a different thread.
-			/// </summary>
-			ForceMinimize = 11
-		}
-		[DllImport("user32.dll")]
-		public static extern bool SetLayeredWindowAttributes (IntPtr hwnd, uint crKey, byte bAlpha, uint dwFlags);
-		[DllImport("user32.dll", SetLastError = true)]
-		public static extern bool GetLayeredWindowAttributes (IntPtr hwnd, out uint crKey, out byte bAlpha, out uint dwFlags);
-
-		[DllImport("user32.dll")]
-		public static extern bool RedrawWindow (IntPtr hWnd, IntPtr lprcUpdate, IntPtr hrgnUpdate, RDW flags);
 		[Flags()]
 		public enum RDW : uint {
 			/// <summary>
@@ -1399,9 +1405,6 @@ namespace FormsHost {
 			Frame = 0x400,
 			NoFrame = 0x800
 		}
-		[DllImport("user32.dll")]
-		[return: MarshalAs(UnmanagedType.Bool)]
-		public static extern bool GetWindowRect (HandleRef hwnd, out RECT lpRect);
 		[StructLayout(LayoutKind.Sequential)]
 		public struct RECT {
 			public int left, top, right, bottom;
@@ -1429,7 +1432,20 @@ namespace FormsHost {
 			public readonly int GlobalY;
 			public readonly bool Global;
 		}
-		[DllImport("user32.dll", CharSet = CharSet.Auto)]
-		public static extern IntPtr SendMessage (HandleRef hWnd, int msg, IntPtr wParam, IntPtr lParam);
+		[StructLayout(LayoutKind.Sequential)]
+		public struct Point {
+			public int X;
+			public int Y;
+			public Point (int x, int y) {
+				this.X = x;
+				this.Y = y;
+			}
+			public static implicit operator System.Drawing.Point (Point p) {
+				return new System.Drawing.Point(p.X, p.Y);
+			}
+			public static implicit operator Point (System.Drawing.Point p) {
+				return new Point(p.X, p.Y);
+			}
+		}
 	}
 }

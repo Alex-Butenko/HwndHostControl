@@ -4,22 +4,28 @@ using System.Threading;
 //-----------------------------------------------------------------------------
 namespace FormsHost {
 	public abstract class SystemWindow {
-		public static ISystemWindow GetSystemWindow (IntPtr handle, IntPtr formsHostHandle, bool setEmbeddable) {
+		public static ISystemWindow GetSystemWindow (IntPtr handle, Type preferrableType = null) {
 			uint exStyle = WinAPI.GetWindowLongPtr(handle, (int) WinAPI.GWL.EXSTYLE);
-			//
-			return new SystemWindowPopup(handle, formsHostHandle, setEmbeddable);
-			//
-			if ((exStyle & (uint) WinAPI.WS_EX.LAYERED) != 0) {
+			if (preferrableType == typeof(SystemWindowChild)) {
+				return new SystemWindowChild(handle);
+			}
+			else if (preferrableType == typeof(SystemWindowPopup)) {
+				return new SystemWindowPopup(handle);
+			}
+			else if (preferrableType == typeof(SystemWindowTransp8)) {
+				return new SystemWindowTransp8(handle);
+			}
+			else if ((exStyle & (uint) WinAPI.WS_EX.LAYERED) != 0) {
 				if (Environment.OSVersion.Version.Major == 6 &&
 					Environment.OSVersion.Version.Minor == 2) {
-					return new SystemWindowTransp8(handle, formsHostHandle, setEmbeddable);
+						return new SystemWindowTransp8(handle);
 				}
 				else {
-					return new SystemWindowPopup(handle, formsHostHandle, setEmbeddable);
+					return new SystemWindowPopup(handle);
 				}
 			}
 			else {
-				return new SystemWindowChild(handle, formsHostHandle, setEmbeddable);
+				return new SystemWindowChild(handle);
 			}
 		}
 		//---------------------------------------------------------------------
@@ -28,9 +34,8 @@ namespace FormsHost {
 		bool _embeddable = false;
 		WinAPI.Position _originalPosition;
 		HandleRef _handleRef;
-		protected SystemWindow (IntPtr handle, IntPtr formsHostHandle, bool setEmbeddable) {
+		protected SystemWindow (IntPtr handle) {
 			Handle = handle;
-			_formsHostHandle = formsHostHandle;
 			_handleRef = new HandleRef(this, Handle);
 			_originalStyle = WinAPI.GetWindowLongPtr(Handle, (int) WinAPI.GWL.STYLE);
 			_originalExStyle = WinAPI.GetWindowLongPtr(Handle, (int) WinAPI.GWL.EXSTYLE);
@@ -67,8 +72,6 @@ namespace FormsHost {
 		}
 		//---------------------------------------------------------------------
 		public IntPtr Handle { get; private set; }
-		//---------------------------------------------------------------------
-		protected IntPtr _formsHostHandle;
 		//---------------------------------------------------------------------
 		public virtual void OnReposition (WinAPI.Position position) { }
 		//---------------------------------------------------------------------
@@ -119,14 +122,9 @@ namespace FormsHost {
 			}
 		}
 		//---------------------------------------------------------------------
-		public bool Close () {
-			bool result = WinAPI.DestroyWindow(Handle);
-			return WinAPI.DestroyWindow(Handle);
-		}
+		public virtual void Grab (IntPtr hostHandle) { }
 		//---------------------------------------------------------------------
-		public virtual void GrabWindow () { }
-		//---------------------------------------------------------------------
-		public virtual void ReleaseWindow () { }
+		public virtual void Release () { }
 		//---------------------------------------------------------------------
 	}
 }

@@ -5,7 +5,7 @@
 		Background="DarkGray"
 		Closing="Window_Closing" WindowStartupLocation="CenterScreen">
 	<Grid x:Name="GridMain2" Margin="88,0,0,0">
-		<Grid x:Name="GridMain1" Background="Green" Margin="0,127,221,-41">
+		<Grid x:Name="GridMain1" Background="Green" Margin="0,127,221,-187">
 			<TextBox HorizontalAlignment="Left" Height="23" Margin="508,28,-75,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
 		</Grid>
 	 </Grid>

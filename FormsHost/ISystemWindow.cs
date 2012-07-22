@@ -5,7 +5,7 @@ namespace FormsHost {
 		bool Embeddable { get; set; }
 		IntPtr Handle { get; }
 		void OnReposition (WinAPI.Position position);
-		void GrabWindow ();
-		void ReleaseWindow ();
+		void Grab (IntPtr hostHandle);
+		void Release ();
 	}
 }

@@ -3,8 +3,8 @@ using System.Runtime.InteropServices;
 
 namespace FormsHost {
 	public class SystemWindowTransp8 : SystemWindowChild, ISystemWindow {
-		public SystemWindowTransp8 (IntPtr handle, IntPtr formsHostHandle, bool setEmbeddable) :
-			base(handle, formsHostHandle, setEmbeddable) { }
+		public SystemWindowTransp8 (IntPtr handle) :
+			base(handle) { }
 		bool _transparency = true;
 		byte _originalOpacity = 255;
 		uint _originalCrKey = 0;

@@ -5,8 +5,8 @@ using System.Text;
 
 namespace FormsHost {
 	public class SystemWindowPopup : SystemWindow, ISystemWindow {
-		public SystemWindowPopup (IntPtr handle, IntPtr formsHostHandle, bool setEmbeddable) :
-			base(handle, formsHostHandle, setEmbeddable) {
+		public SystemWindowPopup (IntPtr handle) :
+			base(handle) {
 			TopMost = true;
 		}
 		//---------------------------------------------------------------------
