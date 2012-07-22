@@ -30,5 +30,10 @@ namespace FormsHost {
 				position.Width, position.Height, (uint) (WinAPI.SWP.NOZORDER | WinAPI.SWP.NOACTIVATE));
 		}
 		//---------------------------------------------------------------------
+		public override bool IsPositionGlobal {
+			get {
+				return true;
+			}
+		}
 	}
 }

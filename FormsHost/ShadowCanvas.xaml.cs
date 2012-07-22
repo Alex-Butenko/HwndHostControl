@@ -5,24 +5,36 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Runtime.InteropServices;
+using System.Windows.Automation;
+using System.Threading;
 //-----------------------------------------------------------------------------
 namespace FormsHost {
 	public partial class ShadowCanvas : UserControl {
 		ISystemWindow _systemWindow;
 		static List<FormHostSet> _formHostSets = new List<FormHostSet>();
 		FormHostSet _formHostSet;
-		public ShadowCanvas (IntPtr dependentWindowHandle, Window mainWindow, Type preferrableType = null) {
+		public ShadowCanvas () {
 			InitializeComponent();
-			IntPtr handle = (new WindowInteropHelper(mainWindow)).Handle;
+		}
+		//---------------------------------------------------------------------
+		public void Init (IntPtr dependentWindowHandle, Window window, Type preferrableType = null) {
+			IntPtr handle = (new WindowInteropHelper(window)).Handle;
 			if (_formHostSets.All(fhs => fhs.Handle != handle)) {
-				_formHostSet = new FormHostSet(handle, mainWindow);
-				HwndSource source = PresentationSource.FromVisual(mainWindow) as HwndSource;
+				_formHostSet = new FormHostSet(handle, window);
+				HwndSource source = PresentationSource.FromVisual(window) as HwndSource;
 				source.AddHook(_formHostSet.WndProc);
 			}
 			else {
 				_formHostSet = _formHostSets.First(fhs => fhs.Handle == handle);
 			}
-			_systemWindow = SystemWindow.GetSystemWindow(dependentWindowHandle, preferrableType);
+			if (_systemWindow != null && _grabbed) {
+				Release();
+				_systemWindow = SystemWindow.GetSystemWindow(dependentWindowHandle, preferrableType);
+				Grab();
+			}
+			else {
+				_systemWindow = SystemWindow.GetSystemWindow(dependentWindowHandle, preferrableType);
+			}
 		}
 		//---------------------------------------------------------------------
 		void UserControl_LayoutUpdated (object sender, EventArgs e) {
@@ -38,21 +50,30 @@ namespace FormsHost {
 			}
 		}
 		//---------------------------------------------------------------------
-		public void Grab() {
+		bool _grabbed = false;
+		//---------------------------------------------------------------------
+		public void Grab () {
 			_systemWindow.Grab(_formHostSet.Handle);
-			_formHostSet.FormHostMove += OnFormHostMove;
-			try {
-				WinAPI.Point point = new WinAPI.Point(0, 0);
-				WinAPI.ClientToScreen(_formHostSet.Handle, ref point);
-				OnFormHostMove(point.X, point.Y, true);
+			if (_systemWindow.IsPositionGlobal) {
+				_formHostSet.FormHostMove += OnFormHostMove;
+				try {
+					WinAPI.Point point = new WinAPI.Point(0, 0);
+					WinAPI.ClientToScreen(_formHostSet.Handle, ref point);
+					OnFormHostMove(point.X, point.Y, true);
+				}
+				catch { }
 			}
-			catch { }
+			_formHostSet.AddChildHandle(_systemWindow.Handle);
+			_grabbed = true;
 		}
 		//---------------------------------------------------------------------
 		public void Release () {
-			_formHostSet.FormHostMove -= OnFormHostMove;
+			if (_systemWindow.IsPositionGlobal) {
+				_formHostSet.FormHostMove -= OnFormHostMove;
+			}
 			_systemWindow.Release();
-			_systemWindow.Embeddable = false;
+			_formHostSet.RemoveChildHandle(_systemWindow.Handle);
+			_grabbed = false;
 		}
 		//---------------------------------------------------------------------
 		public bool ClipByHost { get; set; }
@@ -60,7 +81,7 @@ namespace FormsHost {
 		void OnFormHostMove (int x, int y, bool global) {
 			Point point = TransformToAncestor(_formHostSet.Window).Transform(new Point(0, 0));
 			if (ClipByHost) {
-				int width = (int) ((Panel)_formHostSet.Window.Content).ActualWidth;
+				int width = (int) ((Panel) _formHostSet.Window.Content).ActualWidth;
 				int height = (int) ((Panel) _formHostSet.Window.Content).ActualHeight;
 				_systemWindow.OnReposition(new WinAPI.Position(
 					(int) point.X,
@@ -92,8 +113,7 @@ namespace FormsHost {
 		//---------------------------------------------------------------------
 		public IntPtr Handle {
 			get {
-				//return _dependentWindow.HWnd;
-				return IntPtr.Zero;
+				return _systemWindow.Handle;
 			}
 		}
 		//---------------------------------------------------------------------
@@ -101,24 +121,85 @@ namespace FormsHost {
 			public FormHostSet (IntPtr handle, Window window) {
 				Handle = handle;
 				Window = window;
+				_childHandles = new List<IntPtr>();
+				_handleRef = new HandleRef(this, handle);
+				Thread t = new Thread(FocusTracker);
+				t.IsBackground = true;
+				t.Start();
 			}
 			public readonly Window Window;
 			public readonly IntPtr Handle;
+			List<IntPtr> _childHandles;
+			public void AddChildHandle (IntPtr handle) {
+				_childHandles.Add(handle);
+				_lastFocusHandle = (IntPtr) (-1);
+			}
+			public void RemoveChildHandle (IntPtr handle) {
+				_childHandles.Remove(handle);
+				_lastFocusHandle = (IntPtr) (-1);
+			}
+			bool _deactivationMode = false;
 			public IntPtr WndProc (IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled) {
 				if (msg == (int) WinAPI.WM.NCACTIVATE && wParam == IntPtr.Zero) {
-					handled = true;
-					return (IntPtr) 1;
+					if (_deactivationMode) {
+						_deactivationMode = false;
+					}
+					else {
+						handled = true;
+						return (IntPtr) 1;
+					}
 				}
-				if (msg == (int) WinAPI.WM.MOVE) {
-					int x = unchecked((short) lParam);
-					int y = unchecked((short) ((uint) lParam >> 16));
+				else if (msg == (int) WinAPI.WM.MOVE) {
 					if (FormHostMove != null) {
+						int x = unchecked((short) lParam);
+						int y = unchecked((short) ((uint) lParam >> 16));
 						FormHostMove(x, y, true);
 					}
 				}
 				return IntPtr.Zero;
 			}
 			public event Action<int, int, bool> FormHostMove;
+			//---------------------------------------------------------------------
+			HandleRef _handleRef;
+			IntPtr _lastFocusHandle = (IntPtr) (-1);
+			void FocusTracker () {
+				while (true) {
+					Thread.Sleep(100);
+					IntPtr handle = WinAPI.GetForegroundWindow();
+					if (handle == _lastFocusHandle) {
+						continue;
+					}
+					if (handle != Handle && !_childHandles.Contains(handle)) {
+						_deactivationMode = true;
+						WinAPI.SendMessage(_handleRef, (int) WinAPI.WM.NCACTIVATE, IntPtr.Zero, IntPtr.Zero);
+					}
+					else {
+						WinAPI.SendMessage(_handleRef, (int) WinAPI.WM.NCACTIVATE, (IntPtr) 1, IntPtr.Zero);
+						CorrectOrder(handle);
+					}
+				}
+			}
+			//---------------------------------------------------------------------
+			void CorrectOrder (IntPtr handle) {
+				/*
+				Action meth = delegate {
+					SetWindowPos(Handle, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+					foreach (ShadowCanvas canvas1 in _canvases) {
+						SetWindowPos(canvas1.Handle, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+					}
+				};
+				if (handle == Handle) {
+					meth();
+					return;
+				}
+				foreach (ShadowCanvas canvas in _canvases) {
+					if (canvas.AllHandles.Contains(handle)) {
+						meth();
+						return;
+					}
+				}
+				*/
+			}
 		}
 	}
 }

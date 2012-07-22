@@ -37,6 +37,10 @@ namespace FormsHost {
 		[DllImport("user32.dll")]
 		[return: MarshalAs(UnmanagedType.Bool)]
 		public static extern bool GetWindowRect (HandleRef hwnd, out RECT lpRect);
+		[DllImport("user32.dll")]
+		public static extern IntPtr GetActiveWindow();
+		[DllImport("user32.dll")]
+		public static extern IntPtr GetForegroundWindow ();
 		public enum GWL : int {
 			/// <summary>
 			/// Retrieves the extended window styles.

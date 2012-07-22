@@ -126,5 +126,10 @@ namespace FormsHost {
 		//---------------------------------------------------------------------
 		public virtual void Release () { }
 		//---------------------------------------------------------------------
+		public virtual bool IsPositionGlobal {
+			get {
+				return false;
+			}
+		}
 	}
 }

@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Windows;
-using System.Windows.Automation;
-using System.Windows.Controls;
-using System.Windows.Interop;
 //-----------------------------------------------------------------------------
 namespace FormsHost {
 	public partial class FormsHostWindow : Window {
@@ -15,7 +11,8 @@ namespace FormsHost {
 		}
 		//---------------------------------------------------------------------
 		public void AddControl (IntPtr handle) {
-			ShadowCanvas canvas = new ShadowCanvas(handle, this, typeof(SystemWindowPopup));
+			ShadowCanvas canvas = new ShadowCanvas();
+			canvas.Init(handle, this, typeof(SystemWindowPopup));
 			GridMain1.Children.Add(canvas);
 			_canvases.Add(canvas);
 			canvas.Embeddable = true;
@@ -26,6 +23,7 @@ namespace FormsHost {
 		void Window_Closing (object sender, System.ComponentModel.CancelEventArgs e) {
 			foreach (ShadowCanvas sc in _canvases) {
 				sc.Release();
+				sc.Embeddable = false;
 			}
 			Environment.Exit(0);
 		}

@@ -7,5 +7,6 @@ namespace FormsHost {
 		void OnReposition (WinAPI.Position position);
 		void Grab (IntPtr hostHandle);
 		void Release ();
+		bool IsPositionGlobal { get; }
 	}
 }
