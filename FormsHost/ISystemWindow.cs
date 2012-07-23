@@ -1,6 +1,7 @@
 ﻿using System;
+//-----------------------------------------------------------------------------
 namespace FormsHost {
-	public interface ISystemWindow {
+	interface ISystemWindow {
 		IntPtr[] AllHandles { get; set; }
 		bool Embeddable { get; set; }
 		IntPtr Handle { get; }
@@ -8,5 +9,7 @@ namespace FormsHost {
 		void Grab (IntPtr hostHandle);
 		void Release ();
 		bool IsPositionGlobal { get; }
+		bool NeedFocusTracking { get; }
+		EmbeddingOptions EmbeddingOptions { get; }
 	}
 }

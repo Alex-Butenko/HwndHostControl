@@ -41,6 +41,8 @@ namespace FormsHost {
 		public static extern IntPtr GetActiveWindow();
 		[DllImport("user32.dll")]
 		public static extern IntPtr GetForegroundWindow ();
+		[DllImport("user32.dll")]
+		public static extern IntPtr GetMenu (IntPtr hWnd);
 		public enum GWL : int {
 			/// <summary>
 			/// Retrieves the extended window styles.

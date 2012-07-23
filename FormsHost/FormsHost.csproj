@@ -39,8 +39,6 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Core" />
     <Reference Include="System.Windows.Forms" />
-    <Reference Include="UIAutomationClient" />
-    <Reference Include="UIAutomationTypes" />
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -50,6 +48,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="EmbeddingOptions.cs" />
     <Compile Include="FormsHostWindow.xaml.cs">
       <DependentUpon>FormsHostWindow.xaml</DependentUpon>
     </Compile>
@@ -58,7 +57,7 @@
       <DependentUpon>ShadowCanvas.xaml</DependentUpon>
     </Compile>
     <Compile Include="SystemWindow.cs" />
-    <Compile Include="SystemWindowChild.cs" />
+    <Compile Include="SystemWindowEmbedded.cs" />
     <Compile Include="SystemWindowPopup.cs" />
     <Compile Include="SystemWindowTransp8.cs" />
     <Compile Include="WinAPI.cs" />

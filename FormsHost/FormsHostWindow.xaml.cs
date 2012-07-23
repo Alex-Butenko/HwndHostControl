@@ -12,12 +12,12 @@ namespace FormsHost {
 		//---------------------------------------------------------------------
 		public void AddControl (IntPtr handle) {
 			ShadowCanvas canvas = new ShadowCanvas();
-			canvas.Init(handle, this, typeof(SystemWindowPopup));
+			canvas.Init(handle, this, 
+				EmbeddingOptions.DontSaveMenu | EmbeddingOptions.BestCrossPlatformness);
 			GridMain1.Children.Add(canvas);
 			_canvases.Add(canvas);
 			canvas.Embeddable = true;
 			canvas.Grab();
-			canvas.ClipByHost = true;
 		}
 		//---------------------------------------------------------------------
 		void Window_Closing (object sender, System.ComponentModel.CancelEventArgs e) {

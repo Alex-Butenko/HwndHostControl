@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
+//-----------------------------------------------------------------------------
 namespace FormsHost {
-	public class SystemWindowPopup : SystemWindow, ISystemWindow {
-		public SystemWindowPopup (IntPtr handle) :
-			base(handle) {
+	class SystemWindowPopup : SystemWindow, ISystemWindow {
+		public SystemWindowPopup (IntPtr handle, EmbeddingOptions options) : base(handle, options) {
 			TopMost = true;
 		}
 		//---------------------------------------------------------------------

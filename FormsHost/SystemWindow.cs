@@ -3,29 +3,34 @@ using System.Runtime.InteropServices;
 using System.Threading;
 //-----------------------------------------------------------------------------
 namespace FormsHost {
-	public abstract class SystemWindow {
-		public static ISystemWindow GetSystemWindow (IntPtr handle, Type preferrableType = null) {
+	abstract class SystemWindow {
+		public static ISystemWindow GetSystemWindow (IntPtr handle, EmbeddingOptions options) {
+			if ((options & EmbeddingOptions.DontSaveTransparency) == EmbeddingOptions.DontSaveTransparency) {
+				return new SystemWindowEmbedded(handle, options);
+			}
 			uint exStyle = WinAPI.GetWindowLongPtr(handle, (int) WinAPI.GWL.EXSTYLE);
-			if (preferrableType == typeof(SystemWindowChild)) {
-				return new SystemWindowChild(handle);
+			if ((exStyle & (uint) WinAPI.WS_EX.LAYERED) != (uint) WinAPI.WS_EX.LAYERED) {
+				return new SystemWindowEmbedded(handle, options);
 			}
-			else if (preferrableType == typeof(SystemWindowPopup)) {
-				return new SystemWindowPopup(handle);
+			if ((options & EmbeddingOptions.BestCrossPlatformness) == EmbeddingOptions.BestCrossPlatformness) {
+				return new SystemWindowPopup(handle, options);
 			}
-			else if (preferrableType == typeof(SystemWindowTransp8)) {
-				return new SystemWindowTransp8(handle);
-			}
-			else if ((exStyle & (uint) WinAPI.WS_EX.LAYERED) != 0) {
+			if ((options & EmbeddingOptions.BestPerformance) == EmbeddingOptions.BestPerformance) {
 				if (Environment.OSVersion.Version.Major == 6 &&
 					Environment.OSVersion.Version.Minor == 2) {
-						return new SystemWindowTransp8(handle);
+					return new SystemWindowTransp8(handle, options);
 				}
 				else {
-					return new SystemWindowPopup(handle);
+					return new SystemWindowPopup(handle, options);
 				}
 			}
-			else {
-				return new SystemWindowChild(handle);
+			throw new Exception();
+		}
+		//---------------------------------------------------------------------
+		EmbeddingOptions _embeddingOptions;
+		public EmbeddingOptions EmbeddingOptions {
+			get {
+				return _embeddingOptions;
 			}
 		}
 		//---------------------------------------------------------------------
@@ -34,7 +39,7 @@ namespace FormsHost {
 		bool _embeddable = false;
 		WinAPI.Position _originalPosition;
 		HandleRef _handleRef;
-		protected SystemWindow (IntPtr handle) {
+		protected SystemWindow (IntPtr handle, EmbeddingOptions options) {
 			Handle = handle;
 			_handleRef = new HandleRef(this, Handle);
 			_originalStyle = WinAPI.GetWindowLongPtr(Handle, (int) WinAPI.GWL.STYLE);
@@ -42,6 +47,7 @@ namespace FormsHost {
 			WinAPI.RECT rect;
 			WinAPI.GetWindowRect(_handleRef, out rect);
 			_originalPosition = new WinAPI.Position(rect);
+			_embeddingOptions = options;
 		}
 		//---------------------------------------------------------------------
 		protected bool Visible {
@@ -78,6 +84,7 @@ namespace FormsHost {
 		public IntPtr[] AllHandles { get; set; }
 		//---------------------------------------------------------------------
 		protected virtual void ModStyle (ref uint style, ref uint exStyle) { }
+		//---------------------------------------------------------------------
 		void SetEmbeddable () {
 			Visible = false;
 			uint modStyle = _originalStyle;
@@ -129,6 +136,12 @@ namespace FormsHost {
 		public virtual bool IsPositionGlobal {
 			get {
 				return false;
+			}
+		}
+		//---------------------------------------------------------------------
+		public virtual bool NeedFocusTracking {
+			get {
+				return true;
 			}
 		}
 	}

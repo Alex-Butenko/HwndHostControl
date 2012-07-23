@@ -3,11 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-
+//-----------------------------------------------------------------------------
 namespace FormsHost {
-	public class SystemWindowChild : SystemWindow, ISystemWindow {
-		public SystemWindowChild (IntPtr handle) :
-			base(handle) { }
+	class SystemWindowEmbedded : SystemWindow, ISystemWindow {
+		public SystemWindowEmbedded (IntPtr handle, EmbeddingOptions options) : base(handle, options) {
+			if ((options & EmbeddingOptions.DontSaveMenu) == EmbeddingOptions.DontSaveMenu ||
+					WinAPI.GetMenu(handle) == IntPtr.Zero) {
+				_childStyle = true;
+			}
+		}
 		public virtual bool SetParent (IntPtr handle) {
 			return WinAPI.SetParent(Handle, handle) != IntPtr.Zero;
 		}
@@ -26,11 +30,21 @@ namespace FormsHost {
 				WinAPI.SWP.NOACTIVATE));
 		}
 		//---------------------------------------------------------------------
+		bool _childStyle = false;
 		protected override void ModStyle (ref uint style, ref uint exStyle) {
+			if (_childStyle) {
+				style |= (uint) WinAPI.WS.CHILD;
+			}
 			style = (style) ^
 			(uint) (WinAPI.WS.BORDER | WinAPI.WS.SYSMENU | WinAPI.WS.CAPTION |
 			WinAPI.WS.THICKFRAME | WinAPI.WS.VISIBLE);
 			exStyle = exStyle | (uint) (WinAPI.WS_EX.TOOLWINDOW | WinAPI.WS_EX.CONTROLPARENT);
+		}
+		//---------------------------------------------------------------------
+		public override bool NeedFocusTracking {
+			get {
+				return !_childStyle;
+			}
 		}
 	}
 }
