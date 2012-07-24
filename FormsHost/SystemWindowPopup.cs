@@ -10,10 +10,10 @@ namespace FormsHost {
 		}
 		//---------------------------------------------------------------------
 		protected override void ModStyle (ref uint style, ref uint exStyle) {
-			style = (style | (uint) WinAPI.WS.POPUP) ^
-			(uint) (WinAPI.WS.BORDER | WinAPI.WS.SYSMENU | WinAPI.WS.CAPTION |
+			style = (style | WinAPI.WS.POPUP) ^
+			(WinAPI.WS.BORDER | WinAPI.WS.SYSMENU | WinAPI.WS.CAPTION |
 			WinAPI.WS.THICKFRAME | WinAPI.WS.VISIBLE);
-			exStyle = exStyle | (uint) (WinAPI.WS_EX.TOOLWINDOW | WinAPI.WS_EX.CONTROLPARENT);
+			exStyle = exStyle | WinAPI.WS_EX.TOOLWINDOW | WinAPI.WS_EX.CONTROLPARENT;
 		}
 		//---------------------------------------------------------------------
 		protected int _globalX = 0;
@@ -26,7 +26,7 @@ namespace FormsHost {
 			bool asdf = WinAPI.SetWindowPos(Handle, WinAPI.HWND.TOPMOST,
 				position.X + _globalX,
 				position.Y + _globalY,
-				position.Width, position.Height, (uint) (WinAPI.SWP.NOZORDER | WinAPI.SWP.NOACTIVATE));
+				position.Width, position.Height, (WinAPI.SWP.NOZORDER | WinAPI.SWP.NOACTIVATE));
 		}
 		//---------------------------------------------------------------------
 		public override bool IsPositionGlobal {

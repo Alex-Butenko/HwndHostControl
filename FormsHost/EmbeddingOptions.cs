@@ -6,7 +6,7 @@ using System.Text;
 namespace FormsHost {
 	[Flags]
 	public enum EmbeddingOptions {
-		ClipByHost = 0x1,
+		DontClip = 0x1,
 		BestPerformance = 0x2,
 		BestCrossPlatformness = 0x4,
 		DontSaveTransparency = 0x8,

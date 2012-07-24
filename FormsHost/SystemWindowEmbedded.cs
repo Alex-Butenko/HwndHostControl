@@ -26,19 +26,19 @@ namespace FormsHost {
 		//---------------------------------------------------------------------
 		public override void OnReposition (WinAPI.Position position) {
 			WinAPI.SetWindowPos(Handle, WinAPI.HWND.TOP, position.X, position.Y,
-				position.Width, position.Height + 100, (uint) (WinAPI.SWP.NOZORDER |
+				position.Width, position.Height + 100, (WinAPI.SWP.NOZORDER |
 				WinAPI.SWP.NOACTIVATE));
 		}
 		//---------------------------------------------------------------------
 		bool _childStyle = false;
 		protected override void ModStyle (ref uint style, ref uint exStyle) {
 			if (_childStyle) {
-				style |= (uint) WinAPI.WS.CHILD;
+				style |= WinAPI.WS.CHILD;
 			}
 			style = (style) ^
-			(uint) (WinAPI.WS.BORDER | WinAPI.WS.SYSMENU | WinAPI.WS.CAPTION |
+			(WinAPI.WS.BORDER | WinAPI.WS.SYSMENU | WinAPI.WS.CAPTION |
 			WinAPI.WS.THICKFRAME | WinAPI.WS.VISIBLE);
-			exStyle = exStyle | (uint) (WinAPI.WS_EX.TOOLWINDOW | WinAPI.WS_EX.CONTROLPARENT);
+			exStyle = exStyle | WinAPI.WS_EX.TOOLWINDOW | WinAPI.WS_EX.CONTROLPARENT;
 		}
 		//---------------------------------------------------------------------
 		public override bool NeedFocusTracking {

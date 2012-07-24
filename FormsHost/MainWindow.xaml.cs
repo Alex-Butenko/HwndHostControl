@@ -31,7 +31,7 @@ namespace FormsHost {
 			Thread.Sleep(1000);
 			IntPtr handle = proc.MainWindowHandle;
 			uint exStyle = WinAPI.GetWindowLongPtr(handle, -20);
-			WinAPI.SetWindowLongPtr(new HandleRef(this, handle), -20, new UIntPtr(exStyle | (uint) WinAPI.WS_EX.LAYERED));
+			WinAPI.SetWindowLongPtr(new HandleRef(this, handle), -20, new UIntPtr(exStyle | WinAPI.WS_EX.LAYERED));
 			WinAPI.SetLayeredWindowAttributes(handle, 0, 255 * 80 / 100, 2);
 			_formsHostWindow.AddControl(handle);
 			Action meth = () => {

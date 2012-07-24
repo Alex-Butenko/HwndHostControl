@@ -17,8 +17,7 @@ namespace FormsHost {
 		}
 		//---------------------------------------------------------------------
 		public void Init (IntPtr dependentWindowHandle, Window window,
-				EmbeddingOptions options = EmbeddingOptions.BestPerformance |
-				EmbeddingOptions.ClipByHost) {
+				EmbeddingOptions options = EmbeddingOptions.BestPerformance) {
 			IntPtr handle = (new WindowInteropHelper(window)).Handle;
 			if (_childDispatchers.All(fhs => fhs.Handle != handle)) {
 				_childDispatcher = new ChildWindowsDispatcher(handle, window);
@@ -79,7 +78,15 @@ namespace FormsHost {
 		//---------------------------------------------------------------------
 		void OnFormHostMove (int x, int y, bool global) {
 			Point point = TransformToAncestor(_childDispatcher.Window).Transform(new Point(0, 0));
-			if ((_systemWindow.EmbeddingOptions & EmbeddingOptions.ClipByHost) == EmbeddingOptions.ClipByHost) {
+			if ((_systemWindow.EmbeddingOptions & EmbeddingOptions.DontClip) == EmbeddingOptions.DontClip) {
+				_systemWindow.OnReposition(new WinAPI.Position(
+					(int) point.X,
+					(int) point.Y,
+					(int) RenderSize.Width,
+					(int) RenderSize.Height,
+					x, y, global));
+			}
+			else {
 				int width = (int) ((Panel) _childDispatcher.Window.Content).ActualWidth;
 				int height = (int) ((Panel) _childDispatcher.Window.Content).ActualHeight;
 				_systemWindow.OnReposition(new WinAPI.Position(
@@ -87,14 +94,6 @@ namespace FormsHost {
 					(int) point.Y,
 					(int) ((point.X + RenderSize.Width < width) ? RenderSize.Width : Width - point.X),
 					(int) ((point.Y + RenderSize.Height < height) ? RenderSize.Height : height - point.Y),
-					x, y, global));
-			}
-			else {
-				_systemWindow.OnReposition(new WinAPI.Position(
-					(int) point.X,
-					(int) point.Y,
-					(int) RenderSize.Width,
-					(int) RenderSize.Height,
 					x, y, global));
 			}
 		}
@@ -148,21 +147,25 @@ namespace FormsHost {
 			//-----------------------------------------------------------------
 			bool _deactivationMode = false;
 			public IntPtr WndProc (IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled) {
-				if (msg == (int) WinAPI.WM.NCACTIVATE && wParam == IntPtr.Zero && _focusTrackerEnabled) {
-					if (_deactivationMode) {
-						_deactivationMode = false;
-					}
-					else {
-						handled = true;
-						return (IntPtr) 1;
-					}
-				}
-				else if (msg == (int) WinAPI.WM.MOVE) {
-					if (FormHostMove != null) {
-						int x = unchecked((short) lParam);
-						int y = unchecked((short) ((uint) lParam >> 16));
-						FormHostMove(x, y, true);
-					}
+				switch ((uint)msg) {
+					case WinAPI.WM.NCACTIVATE:
+						if (wParam == IntPtr.Zero && _focusTrackerEnabled) {
+							if (_deactivationMode) {
+								_deactivationMode = false;
+							}
+							else {
+								handled = true;
+								return (IntPtr) 1;
+							}
+						}
+						break;
+					case WinAPI.WM.MOVE:
+						if (FormHostMove != null) {
+							int x = unchecked((short) lParam);
+							int y = unchecked((short) ((uint) lParam >> 16));
+							FormHostMove(x, y, true);
+						}
+						break;
 				}
 				return IntPtr.Zero;
 			}
@@ -182,10 +185,10 @@ namespace FormsHost {
 					}
 					if (handle != Handle && _childWindows.All(ce => ce.Handle != handle)) {
 						_deactivationMode = true;
-						WinAPI.SendMessage(_handleRef, (int) WinAPI.WM.NCACTIVATE, IntPtr.Zero, IntPtr.Zero);
+						WinAPI.SendMessage(_handleRef, WinAPI.WM.NCACTIVATE, IntPtr.Zero, IntPtr.Zero);
 					}
 					else {
-						WinAPI.SendMessage(_handleRef, (int) WinAPI.WM.NCACTIVATE, (IntPtr) 1, IntPtr.Zero);
+						WinAPI.SendMessage(_handleRef, WinAPI.WM.NCACTIVATE, (IntPtr) 1, IntPtr.Zero);
 						CorrectOrder(handle);
 					}
 				}

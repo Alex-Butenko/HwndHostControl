@@ -5,11 +5,14 @@ using System.Threading;
 namespace FormsHost {
 	abstract class SystemWindow {
 		public static ISystemWindow GetSystemWindow (IntPtr handle, EmbeddingOptions options) {
+			if ((options & EmbeddingOptions.DontClip) == EmbeddingOptions.DontClip) {
+				return new SystemWindowPopup(handle, options);
+			}
 			if ((options & EmbeddingOptions.DontSaveTransparency) == EmbeddingOptions.DontSaveTransparency) {
 				return new SystemWindowEmbedded(handle, options);
 			}
-			uint exStyle = WinAPI.GetWindowLongPtr(handle, (int) WinAPI.GWL.EXSTYLE);
-			if ((exStyle & (uint) WinAPI.WS_EX.LAYERED) != (uint) WinAPI.WS_EX.LAYERED) {
+			uint exStyle = WinAPI.GetWindowLongPtr(handle, WinAPI.GWL.EXSTYLE);
+			if ((exStyle & WinAPI.WS_EX.LAYERED) != WinAPI.WS_EX.LAYERED) {
 				return new SystemWindowEmbedded(handle, options);
 			}
 			if ((options & EmbeddingOptions.BestCrossPlatformness) == EmbeddingOptions.BestCrossPlatformness) {
@@ -18,7 +21,7 @@ namespace FormsHost {
 			if ((options & EmbeddingOptions.BestPerformance) == EmbeddingOptions.BestPerformance) {
 				if (Environment.OSVersion.Version.Major == 6 &&
 					Environment.OSVersion.Version.Minor == 2) {
-					return new SystemWindowTransp8(handle, options);
+					return new SystemWindowTransp8(handle, options ^ EmbeddingOptions.DontSaveMenu);
 				}
 				else {
 					return new SystemWindowPopup(handle, options);
@@ -42,8 +45,8 @@ namespace FormsHost {
 		protected SystemWindow (IntPtr handle, EmbeddingOptions options) {
 			Handle = handle;
 			_handleRef = new HandleRef(this, Handle);
-			_originalStyle = WinAPI.GetWindowLongPtr(Handle, (int) WinAPI.GWL.STYLE);
-			_originalExStyle = WinAPI.GetWindowLongPtr(Handle, (int) WinAPI.GWL.EXSTYLE);
+			_originalStyle = WinAPI.GetWindowLongPtr(Handle, WinAPI.GWL.STYLE);
+			_originalExStyle = WinAPI.GetWindowLongPtr(Handle, WinAPI.GWL.EXSTYLE);
 			WinAPI.RECT rect;
 			WinAPI.GetWindowRect(_handleRef, out rect);
 			_originalPosition = new WinAPI.Position(rect);
@@ -52,11 +55,11 @@ namespace FormsHost {
 		//---------------------------------------------------------------------
 		protected bool Visible {
 			get {
-				uint style = WinAPI.GetWindowLongPtr(Handle, (int) WinAPI.GWL.EXSTYLE);
-				return (style & (uint) WinAPI.WS.VISIBLE) != 0;
+				uint style = WinAPI.GetWindowLongPtr(Handle, WinAPI.GWL.EXSTYLE);
+				return (style & WinAPI.WS.VISIBLE) != 0;
 			}
 			set {
-				WinAPI.SW sw = value ? WinAPI.SW.ShowNA : WinAPI.SW.Hide;
+				int sw = value ? WinAPI.SW.ShowNA : WinAPI.SW.Hide;
 				WinAPI.ShowWindow(Handle, sw);
 				/*
 				SWP swp = value ? SWP.SHOWWINDOW : SWP.HIDEWINDOW;
@@ -68,12 +71,12 @@ namespace FormsHost {
 		//---------------------------------------------------------------------
 		protected bool TopMost {
 			get {
-				uint style = WinAPI.GetWindowLongPtr(Handle, (int) WinAPI.GWL.EXSTYLE);
-				return (style & (uint) WinAPI.WS_EX.TOPMOST) != 0;
+				uint style = WinAPI.GetWindowLongPtr(Handle, WinAPI.GWL.EXSTYLE);
+				return (style & WinAPI.WS_EX.TOPMOST) != 0;
 			}
 			set {
 				IntPtr tp = value ? WinAPI.HWND.TOPMOST : WinAPI.HWND.NOTOPMOST;
-				WinAPI.SetWindowPos(Handle, tp, 0, 0, 0, 0, (uint) (WinAPI.SWP.NOMOVE | WinAPI.SWP.NOSIZE));
+				WinAPI.SetWindowPos(Handle, tp, 0, 0, 0, 0, (WinAPI.SWP.NOMOVE | WinAPI.SWP.NOSIZE));
 			}
 		}
 		//---------------------------------------------------------------------
@@ -91,12 +94,12 @@ namespace FormsHost {
 			uint modExStyle = _originalExStyle;
 			ModStyle(ref modStyle, ref modExStyle);
 			WinAPI.SetWindowLongPtr(new HandleRef(this, Handle),
-				(int) WinAPI.GWL.STYLE, new UIntPtr(modStyle));
+				WinAPI.GWL.STYLE, new UIntPtr(modStyle));
 			WinAPI.SetWindowLongPtr(new HandleRef(this, Handle),
-				(int) WinAPI.GWL.EXSTYLE, new UIntPtr(modExStyle));
+				WinAPI.GWL.EXSTYLE, new UIntPtr(modExStyle));
 			_embeddable = true;
 			WinAPI.SetWindowPos(Handle, WinAPI.HWND.TOP, 0, 0,
-				_originalPosition.Width+1, _originalPosition.Height+1, (uint) WinAPI.SWP.NOZORDER);
+				_originalPosition.Width+1, _originalPosition.Height+1, WinAPI.SWP.NOZORDER);
 			Visible = true;
 		}
 		void SetOriginalStyle () {
@@ -105,13 +108,13 @@ namespace FormsHost {
 			WinAPI.Position pos = new WinAPI.Position(rect);
 			Visible = false;
 			WinAPI.SetWindowLongPtr(new HandleRef(this, Handle),
-				(int)WinAPI.GWL.STYLE, new UIntPtr(_originalStyle));
+				WinAPI.GWL.STYLE, new UIntPtr(_originalStyle));
 			WinAPI.SetWindowLongPtr(new HandleRef(this, Handle),
-				(int)WinAPI.GWL.EXSTYLE, new UIntPtr(_originalExStyle));
+				WinAPI.GWL.EXSTYLE, new UIntPtr(_originalExStyle));
 			_embeddable = false;
 			Visible = true;
 			WinAPI.SetWindowPos(Handle, WinAPI.HWND.TOP, pos.X, pos.Y,
-				pos.Width, pos.Height, (uint) WinAPI.SWP.NOZORDER);
+				pos.Width, pos.Height, WinAPI.SWP.NOZORDER);
 		}
 		public bool Embeddable {
 			get {
