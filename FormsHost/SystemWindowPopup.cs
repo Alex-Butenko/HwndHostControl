@@ -10,8 +10,8 @@ namespace FormsHost {
 		}
 		//---------------------------------------------------------------------
 		protected override void ModStyle (ref uint style, ref uint exStyle) {
-			style = (style | WinAPI.WS.POPUP) ^
-			(WinAPI.WS.BORDER | WinAPI.WS.SYSMENU | WinAPI.WS.CAPTION |
+			style = (style | WinAPI.WS.POPUP) &
+			~(WinAPI.WS.BORDER | WinAPI.WS.SYSMENU | WinAPI.WS.CAPTION |
 			WinAPI.WS.THICKFRAME | WinAPI.WS.VISIBLE);
 			exStyle = exStyle | WinAPI.WS_EX.TOOLWINDOW | WinAPI.WS_EX.CONTROLPARENT;
 		}

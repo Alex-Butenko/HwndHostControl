@@ -12,6 +12,7 @@ namespace FormsHost {
 				_childStyle = true;
 			}
 		}
+		//---------------------------------------------------------------------
 		public virtual bool SetParent (IntPtr handle) {
 			return WinAPI.SetParent(Handle, handle) != IntPtr.Zero;
 		}
@@ -26,7 +27,7 @@ namespace FormsHost {
 		//---------------------------------------------------------------------
 		public override void OnReposition (WinAPI.Position position) {
 			WinAPI.SetWindowPos(Handle, WinAPI.HWND.TOP, position.X, position.Y,
-				position.Width, position.Height + 100, (WinAPI.SWP.NOZORDER |
+				position.Width, position.Height, (WinAPI.SWP.NOZORDER |
 				WinAPI.SWP.NOACTIVATE));
 		}
 		//---------------------------------------------------------------------
@@ -35,8 +36,8 @@ namespace FormsHost {
 			if (_childStyle) {
 				style |= WinAPI.WS.CHILD;
 			}
-			style = (style) ^
-			(WinAPI.WS.BORDER | WinAPI.WS.SYSMENU | WinAPI.WS.CAPTION |
+			style = (style) &
+			~(WinAPI.WS.BORDER | WinAPI.WS.SYSMENU | WinAPI.WS.CAPTION |
 			WinAPI.WS.THICKFRAME | WinAPI.WS.VISIBLE);
 			exStyle = exStyle | WinAPI.WS_EX.TOOLWINDOW | WinAPI.WS_EX.CONTROLPARENT;
 		}

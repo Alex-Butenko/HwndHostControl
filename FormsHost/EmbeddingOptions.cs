@@ -11,5 +11,6 @@ namespace FormsHost {
 		BestCrossPlatformness = 0x4,
 		DontSaveTransparency = 0x8,
 		DontSaveMenu = 0x10,
+		FollowZorder,
 	}
 }

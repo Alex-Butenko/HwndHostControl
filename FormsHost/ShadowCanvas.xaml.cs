@@ -6,6 +6,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
+using System.Windows.Media;
 //-----------------------------------------------------------------------------
 namespace FormsHost {
 	public partial class ShadowCanvas : UserControl {
@@ -63,7 +64,7 @@ namespace FormsHost {
 				}
 				catch { }
 			}
-			_childDispatcher.AddChild(_systemWindow);
+			_childDispatcher.AddChild(_systemWindow, this);
 			_grabbed = true;
 		}
 		//---------------------------------------------------------------------
@@ -92,7 +93,7 @@ namespace FormsHost {
 				_systemWindow.OnReposition(new WinAPI.Position(
 					(int) point.X,
 					(int) point.Y,
-					(int) ((point.X + RenderSize.Width < width) ? RenderSize.Width : Width - point.X),
+					(int) ((point.X + RenderSize.Width < width) ? RenderSize.Width : width - point.X),
 					(int) ((point.Y + RenderSize.Height < height) ? RenderSize.Height : height - point.Y),
 					x, y, global));
 			}
@@ -119,15 +120,15 @@ namespace FormsHost {
 			public ChildWindowsDispatcher (IntPtr handle, Window window) {
 				Handle = handle;
 				Window = window;
-				_childWindows = new List<ISystemWindow>();
+				_childEntries = new List<ChildEntry>();
 				_handleRef = new HandleRef(this, handle);
 			}
 			public readonly Window Window;
 			public readonly IntPtr Handle;
-			List<ISystemWindow> _childWindows;
+			List<ChildEntry> _childEntries;
 			//-----------------------------------------------------------------
-			public void AddChild (ISystemWindow sysWindow) {
-				_childWindows.Add(sysWindow);
+			public void AddChild (ISystemWindow sysWindow, ShadowCanvas canvas) {
+				_childEntries.Add(new ChildEntry() { ChildWindow = sysWindow, Canvas = canvas });
 				if (!_focusTrackerEnabled && sysWindow.NeedFocusTracking) {
 					Thread t = new Thread(FocusTracker);
 					t.IsBackground = true;
@@ -137,9 +138,9 @@ namespace FormsHost {
 			}
 			//-----------------------------------------------------------------
 			public void RemoveChild (ISystemWindow sysWindow) {
-				_childWindows.Remove(sysWindow);
+				_childEntries.RemoveAll(ce => ce.ChildWindow.Handle == sysWindow.Handle);
 				if (_focusTrackerEnabled && sysWindow.NeedFocusTracking &&
-						_childWindows.All(cw => !cw.NeedFocusTracking)) {
+						_childEntries.All(ce => !ce.ChildWindow.NeedFocusTracking)) {
 					_focusTrackerEnabled = false;
 				}
 				_lastFocusHandle = (IntPtr) (-1);
@@ -183,18 +184,38 @@ namespace FormsHost {
 					if (handle == _lastFocusHandle) {
 						continue;
 					}
-					if (handle != Handle && _childWindows.All(ce => ce.Handle != handle)) {
+					if (handle != Handle && _childEntries.All(ce => ce.ChildWindow.Handle != handle)) {
 						_deactivationMode = true;
 						WinAPI.SendMessage(_handleRef, WinAPI.WM.NCACTIVATE, IntPtr.Zero, IntPtr.Zero);
 					}
 					else {
 						WinAPI.SendMessage(_handleRef, WinAPI.WM.NCACTIVATE, (IntPtr) 1, IntPtr.Zero);
-						CorrectOrder(handle);
+						CorrectOrderPopup();
 					}
 				}
 			}
 			//-----------------------------------------------------------------
-			void CorrectOrder (IntPtr handle) {
+			public void ZindexRecount () {
+				List<DependencyObject> visualTree = new List<DependencyObject>();
+				Action<DependencyObject> meth = null;
+				meth = delegate (DependencyObject obj) {
+					if (obj is ShadowCanvas) {
+						visualTree.Add(obj);
+					}
+					for (int i = 0 ; i < VisualTreeHelper.GetChildrenCount(obj) ; i++) {
+						meth(VisualTreeHelper.GetChild(obj, i));
+					}
+				};
+				meth(Window);
+				for (int i = 0 ; i < visualTree.Count ; i++) {
+					_childEntries.Single(ce => visualTree[i] == ce.Canvas).Zindex = i;
+				}
+			}
+			//-----------------------------------------------------------------
+			void CorrectOrderChild () {
+			}
+			//-----------------------------------------------------------------
+			void CorrectOrderPopup () {
 				/*
 				Action meth = delegate {
 					SetWindowPos(Handle, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
@@ -215,6 +236,11 @@ namespace FormsHost {
 				*/
 			}
 			//-----------------------------------------------------------------
+			class ChildEntry {
+				public ISystemWindow ChildWindow;
+				public ShadowCanvas Canvas;
+				public int Zindex;
+			}
 		}
 	}
 }

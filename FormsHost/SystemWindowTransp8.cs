@@ -27,7 +27,7 @@ namespace FormsHost {
 					WinAPI.GetLayeredWindowAttributes(Handle, out _originalCrKey, out _originalOpacity, out _originalDwFlags);
 					uint exStyle = WinAPI.GetWindowLongPtr(Handle, WinAPI.GWL.EXSTYLE);
 					IntPtr asdf = WinAPI.SetWindowLongPtr(new HandleRef(this, Handle),
-						WinAPI.GWL.EXSTYLE, new UIntPtr(exStyle ^ WinAPI.WS_EX.LAYERED));
+						WinAPI.GWL.EXSTYLE, new UIntPtr(exStyle & ~WinAPI.WS_EX.LAYERED));
 				}
 				_transparency = value;
 			}

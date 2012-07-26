@@ -21,7 +21,7 @@ namespace FormsHost {
 			if ((options & EmbeddingOptions.BestPerformance) == EmbeddingOptions.BestPerformance) {
 				if (Environment.OSVersion.Version.Major == 6 &&
 					Environment.OSVersion.Version.Minor == 2) {
-					return new SystemWindowTransp8(handle, options ^ EmbeddingOptions.DontSaveMenu);
+					return new SystemWindowTransp8(handle, options & ~EmbeddingOptions.DontSaveMenu);
 				}
 				else {
 					return new SystemWindowPopup(handle, options);
@@ -56,7 +56,7 @@ namespace FormsHost {
 		protected bool Visible {
 			get {
 				uint style = WinAPI.GetWindowLongPtr(Handle, WinAPI.GWL.EXSTYLE);
-				return (style & WinAPI.WS.VISIBLE) != 0;
+				return (style & WinAPI.WS.VISIBLE) == WinAPI.WS.VISIBLE;
 			}
 			set {
 				int sw = value ? WinAPI.SW.ShowNA : WinAPI.SW.Hide;
