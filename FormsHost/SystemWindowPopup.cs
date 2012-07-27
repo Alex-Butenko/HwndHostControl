@@ -6,7 +6,6 @@ using System.Text;
 namespace FormsHost {
 	class SystemWindowPopup : SystemWindow, ISystemWindow {
 		public SystemWindowPopup (IntPtr handle, EmbeddingOptions options) : base(handle, options) {
-			TopMost = true;
 		}
 		//---------------------------------------------------------------------
 		protected override void ModStyle (ref uint style, ref uint exStyle) {

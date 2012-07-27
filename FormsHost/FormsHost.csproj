@@ -48,6 +48,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ChildWindowsDispatcher.cs" />
     <Compile Include="EmbeddingOptions.cs" />
     <Compile Include="ISystemWindow.cs" />
     <Compile Include="ShadowCanvas.xaml.cs">

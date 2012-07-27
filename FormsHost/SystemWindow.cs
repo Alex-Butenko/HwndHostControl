@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using System.Threading;
 //-----------------------------------------------------------------------------
 namespace FormsHost {
 	abstract class SystemWindow {
@@ -72,7 +71,7 @@ namespace FormsHost {
 		protected bool TopMost {
 			get {
 				uint style = WinAPI.GetWindowLongPtr(Handle, WinAPI.GWL.EXSTYLE);
-				return (style & WinAPI.WS_EX.TOPMOST) != 0;
+				return (style & WinAPI.WS_EX.TOPMOST) == WinAPI.WS_EX.TOPMOST;
 			}
 			set {
 				IntPtr tp = value ? WinAPI.HWND.TOPMOST : WinAPI.HWND.NOTOPMOST;
