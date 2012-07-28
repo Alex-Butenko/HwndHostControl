@@ -12,7 +12,8 @@ namespace FormsHost {
 			style = (style | WinAPI.WS.POPUP) &
 			~(WinAPI.WS.BORDER | WinAPI.WS.SYSMENU | WinAPI.WS.CAPTION |
 			WinAPI.WS.THICKFRAME | WinAPI.WS.VISIBLE);
-			exStyle = exStyle | WinAPI.WS_EX.TOOLWINDOW | WinAPI.WS_EX.CONTROLPARENT;
+			exStyle = (exStyle | WinAPI.WS_EX.TOOLWINDOW | WinAPI.WS_EX.CONTROLPARENT) &
+				~WinAPI.WS_EX.APPWINDOW;
 		}
 		//---------------------------------------------------------------------
 		protected int _globalX = 0;
@@ -33,5 +34,6 @@ namespace FormsHost {
 				return true;
 			}
 		}
+		//---------------------------------------------------------------------
 	}
 }

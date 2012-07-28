@@ -4,6 +4,12 @@ using System.Runtime.InteropServices;
 namespace FormsHost {
 	abstract class SystemWindow {
 		public static ISystemWindow GetSystemWindow (IntPtr handle, EmbeddingOptions options) {
+			if ((options & EmbeddingOptions.ForcedPopup) == EmbeddingOptions.ForcedPopup) {
+				return new SystemWindowPopup(handle, options);
+			}
+			if ((options & EmbeddingOptions.ForcedEmbedded) == EmbeddingOptions.ForcedEmbedded) {
+				return new SystemWindowEmbedded(handle, options);
+			}
 			if ((options & EmbeddingOptions.DontClip) == EmbeddingOptions.DontClip) {
 				return new SystemWindowPopup(handle, options);
 			}
@@ -52,7 +58,7 @@ namespace FormsHost {
 			_embeddingOptions = options;
 		}
 		//---------------------------------------------------------------------
-		protected bool Visible {
+		public virtual bool Visible {
 			get {
 				uint style = WinAPI.GetWindowLongPtr(Handle, WinAPI.GWL.EXSTYLE);
 				return (style & WinAPI.WS.VISIBLE) == WinAPI.WS.VISIBLE;
@@ -146,5 +152,6 @@ namespace FormsHost {
 				return true;
 			}
 		}
+		//---------------------------------------------------------------------
 	}
 }

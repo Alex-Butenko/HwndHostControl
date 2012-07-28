@@ -11,5 +11,6 @@ namespace FormsHost {
 		bool IsPositionGlobal { get; }
 		bool NeedFocusTracking { get; }
 		EmbeddingOptions EmbeddingOptions { get; }
+		bool Visible { get; set; }
 	}
 }

@@ -3,12 +3,12 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 		Closing="Window_Closing" Height="636" Width="1093" Loaded="Window_Loaded">
 	<Grid Background="Gray">
-		<Grid x:Name="Grid1" Background="Red" Margin="0,0,552,208"/>
+		<Grid x:Name="Grid1" Background="Red" Margin="-72,-63,624,271"/>
 		<Grid x:Name="Grid2" Background="Green" Margin="115.5,73.5,406.5,102.5"/>
 		<Grid x:Name="Grid5" Background="MidnightBlue" Margin="0,215.5,448.5,0"/>
 		<Grid x:Name="Grid3" Background="Blue" Margin="297.5,139.5,224.5,71.5"/>
 		<Grid x:Name="Grid6" Background="Yellow" Margin="412.5,0,0,215.5"/>
-		<Grid x:Name="Grid4" Background="DarkMagenta" Margin="448.5,215.5,0,0"/>
+		<Grid x:Name="Grid4" Background="DarkMagenta" Margin="412.5,296.5,0,-81"/>
 		<Grid x:Name="Grid7" Background="Orange" Margin="165,296.5,448.5,113"/>
 	</Grid>
 </Window>

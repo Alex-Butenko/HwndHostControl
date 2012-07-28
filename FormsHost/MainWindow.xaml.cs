@@ -17,10 +17,10 @@ namespace FormsHost {
 		}
 		//---------------------------------------------------------------------
 		void Window_Loaded (object sender, RoutedEventArgs e) {
-			Test3();
+			//Test3();
 			Test1();
-			Test2();
-			Test4();
+			//Test2();
+			//Test4();
 			//Test5();
 			//Test6();
 			//Test7();
@@ -30,13 +30,13 @@ namespace FormsHost {
 			ProcessStartInfo psi1 = new ProcessStartInfo("notepad");
 			Process proc1 = new Process() { StartInfo = psi1 };
 			proc1.Start();
-			Thread.Sleep(1000);
+			proc1.WaitForInputIdle();
 			IntPtr handle1 = proc1.MainWindowHandle;
 			uint exStyle1 = WinAPI.GetWindowLongPtr(handle1, -20);
 			//WinAPI.SetWindowLongPtr(new HandleRef(this, handle1), -20, new UIntPtr(exStyle1 | WinAPI.WS_EX.LAYERED));
 			//WinAPI.SetLayeredWindowAttributes(handle1, 0, 255 * 80 / 100, 2);
 			ShadowCanvas scanvas1 = new ShadowCanvas();
-			scanvas1.Init(handle1, this, EmbeddingOptions.BestCrossPlatformness);
+			scanvas1.Init(handle1, this, EmbeddingOptions.DontClip);
 			scanvas1.Embeddable = true;
 			Grid1.Children.Add(scanvas1);
 			scanvas1.Grab();
@@ -48,11 +48,11 @@ namespace FormsHost {
 			ProcessStartInfo psi2 = new ProcessStartInfo("cmd");
 			Process proc2 = new Process() { StartInfo = psi2 };
 			proc2.Start();
-			Thread.Sleep(1000);
+			Thread.Sleep(500);
 			IntPtr handle2 = proc2.MainWindowHandle;
 			uint exStyle2 = WinAPI.GetWindowLongPtr(handle2, -20);
-			//WinAPI.SetWindowLongPtr(new HandleRef(this, handle2), -20, new UIntPtr(exStyle2 | WinAPI.WS_EX.LAYERED));
-			//WinAPI.SetLayeredWindowAttributes(handle2, 0, 255 * 80 / 100, 2);
+			WinAPI.SetWindowLongPtr(new HandleRef(this, handle2), -20, new UIntPtr(exStyle2 | WinAPI.WS_EX.LAYERED));
+			WinAPI.SetLayeredWindowAttributes(handle2, 0, 255 * 80 / 100, 2);
 			ShadowCanvas scanvas2 = new ShadowCanvas();
 			scanvas2.Init(handle2, this, EmbeddingOptions.BestCrossPlatformness);
 			scanvas2.Embeddable = true;
@@ -70,8 +70,8 @@ namespace FormsHost {
 			IntPtr handle3 = proc3.MainWindowHandle;
 			uint style3 = WinAPI.GetWindowLongPtr(handle3, -16);
 			uint exStyle3 = WinAPI.GetWindowLongPtr(handle3, -20);
-			//WinAPI.SetWindowLongPtr(new HandleRef(this, handle3), -20, new UIntPtr(exStyle3 | WinAPI.WS_EX.LAYERED));
-			//WinAPI.SetLayeredWindowAttributes(handle3, 0, 255 * 80 / 100, 2);
+			WinAPI.SetWindowLongPtr(new HandleRef(this, handle3), -20, new UIntPtr(exStyle3 | WinAPI.WS_EX.LAYERED));
+			WinAPI.SetLayeredWindowAttributes(handle3, 0, 255 * 80 / 100, 2);
 			ShadowCanvas scanvas3 = new ShadowCanvas();
 			scanvas3.Init(handle3, this, EmbeddingOptions.BestCrossPlatformness);
 			scanvas3.Embeddable = true;
@@ -86,14 +86,14 @@ namespace FormsHost {
 			ProcessStartInfo psi4 = new ProcessStartInfo("write");
 			Process proc4 = new Process() { StartInfo = psi4 };
 			proc4.Start();
-			Thread.Sleep(1000);
+			proc4.WaitForInputIdle();
 			IntPtr handle4 = proc4.MainWindowHandle;
 			uint style4 = WinAPI.GetWindowLongPtr(handle4, -16);
 			uint exStyle4 = WinAPI.GetWindowLongPtr(handle4, -20);
-			//WinAPI.SetWindowLongPtr(new HandleRef(this, handle4), -20, new UIntPtr(exStyle4 | WinAPI.WS_EX.LAYERED));
-			//WinAPI.SetLayeredWindowAttributes(handle4, 0, 255 * 80 / 100, 2);
+			WinAPI.SetWindowLongPtr(new HandleRef(this, handle4), -20, new UIntPtr(exStyle4 | WinAPI.WS_EX.LAYERED));
+			WinAPI.SetLayeredWindowAttributes(handle4, 0, 255 * 80 / 100, 2);
 			ShadowCanvas scanvas4 = new ShadowCanvas();
-			scanvas4.Init(handle4, this, EmbeddingOptions.BestCrossPlatformness);
+			scanvas4.Init(handle4, this, EmbeddingOptions.ForcedPopup);
 			scanvas4.Embeddable = true;
 			Grid4.Children.Add(scanvas4);
 			scanvas4.Grab();
@@ -105,7 +105,7 @@ namespace FormsHost {
 			ProcessStartInfo psi5 = new ProcessStartInfo(@"E:\Projects\Articles\HwndHostControl\WindowsFormsApplication1\bin\Debug\WindowsFormsApplication1.exe");
 			Process proc5 = new Process() { StartInfo = psi5 };
 			proc5.Start();
-			Thread.Sleep(2000);
+			Thread.Sleep(1000);
 			IntPtr handle5 = proc5.MainWindowHandle;
 			ShadowCanvas scanvas5 = new ShadowCanvas();
 			scanvas5.Init(handle5, this, EmbeddingOptions.BestCrossPlatformness);
@@ -120,7 +120,7 @@ namespace FormsHost {
 			ProcessStartInfo psi6 = new ProcessStartInfo(@"E:\Projects\Articles\HwndHostControl\WpfApplication1\bin\Debug\WpfApplication1.exe");
 			Process proc6 = new Process() { StartInfo = psi6 };
 			proc6.Start();
-			Thread.Sleep(2000);
+			Thread.Sleep(1000);
 			IntPtr handle6 = proc6.MainWindowHandle;
 			ShadowCanvas scanvas6 = new ShadowCanvas();
 			scanvas6.Init(handle6, this, EmbeddingOptions.BestCrossPlatformness);
@@ -156,7 +156,10 @@ namespace FormsHost {
 			}
 			Thread.Sleep(2000);
 			foreach (Process proc in _processes) {
-				proc.Kill();
+				try {
+					proc.Kill();
+				}
+				catch { }
 			}
 			Environment.Exit(0);
 		}

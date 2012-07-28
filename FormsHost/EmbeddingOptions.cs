@@ -11,6 +11,10 @@ namespace FormsHost {
 		BestCrossPlatformness = 0x4,
 		DontSaveTransparency = 0x8,
 		DontSaveMenu = 0x10,
-		FollowZorder,
+		ForcedEmbedded = 0x20,
+		ForcedPopup = 0x40,
+		KeyboardEvents = 0x80,
+		MouseEvents = 0x100,
+		FocusEvents = 0x200,
 	}
 }

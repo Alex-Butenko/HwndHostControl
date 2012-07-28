@@ -38,6 +38,8 @@ namespace FormsHost {
 				t.Start();
 			}
 			_lastFocusHandle = (IntPtr) (-1);
+			CorrectOrderPopup();
+			CorrectOrderEmbedded();
 		}
 		//-----------------------------------------------------------------
 		public void RemoveChild (ISystemWindow sysWindow) {
@@ -76,11 +78,26 @@ namespace FormsHost {
 						}
 					}
 					break;
+				case WinAPI.WM.SYSCOMMAND:
+					if (wParam == (IntPtr) WinAPI.SC.MINIMIZE) {
+						if (FormHostMinimize != null) {
+							FormHostMinimize(false);
+						}
+					}
+					else if (wParam == (IntPtr) WinAPI.SC.RESTORE) {
+						if (FormHostMinimize != null) {
+							FormHostMinimize(true);
+						}
+					}
+					break;
 				case WinAPI.WM.MOVE:
 					if (FormHostMove != null) {
-						int x = unchecked((short) lParam);
-						int y = unchecked((short) ((uint) lParam >> 16));
-						FormHostMove(x, y, true);
+						try {
+							int x = unchecked((short) lParam);
+							int y = unchecked((short) ((uint) lParam >> 16));
+							FormHostMove(x, y, true);
+						}
+						catch (OverflowException e) { }
 					}
 					break;
 			}
@@ -88,6 +105,8 @@ namespace FormsHost {
 		}
 		//-----------------------------------------------------------------
 		public event Action<int, int, bool> FormHostMove;
+		//-----------------------------------------------------------------
+		public event Action<bool> FormHostMinimize;
 		//-----------------------------------------------------------------
 		HandleRef _handleRef;
 		IntPtr _lastFocusHandle = (IntPtr) (-1);
@@ -102,9 +121,9 @@ namespace FormsHost {
 				}
 				bool flag;
 				lock (_childEntries) {
-					flag = _childEntries.All(ce => ce.ChildWindow.Handle != handle);
+					flag = _childEntries.Any(ce => ce.ChildWindow.Handle == handle);
 				}
-				if (handle != Handle && flag) {
+				if (handle != Handle && !flag) {
 					_deactivationMode = true;
 					WinAPI.SendMessage(_handleRef, WinAPI.WM.NCACTIVATE, IntPtr.Zero, IntPtr.Zero);
 				}
@@ -112,8 +131,8 @@ namespace FormsHost {
 					WinAPI.SendMessage(_handleRef, WinAPI.WM.NCACTIVATE, (IntPtr) 1, IntPtr.Zero);
 					CorrectOrderPopup();
 					CorrectOrderEmbedded();
-					_lastFocusHandle = WinAPI.GetForegroundWindow();
 				}
+				_lastFocusHandle = handle;
 			}
 		}
 		//-----------------------------------------------------------------
@@ -155,17 +174,20 @@ namespace FormsHost {
 		}
 		//-----------------------------------------------------------------
 		void CorrectOrderPopup () {
-			uint style = WinAPI.GetWindowLongPtr(Handle, WinAPI.GWL.EXSTYLE);
-			IntPtr pos = (style & WinAPI.WS_EX.TOPMOST) == WinAPI.WS_EX.TOPMOST ?
-				WinAPI.HWND.TOP : WinAPI.HWND.NOTOPMOST;
+			uint exStyle = WinAPI.GetWindowLongPtr(Handle, WinAPI.GWL.EXSTYLE);
+			bool topMost = (exStyle & WinAPI.WS_EX.TOPMOST) == WinAPI.WS_EX.TOPMOST;
 			if (_hasPopupChild) {
 				IntPtr[] handles;
 				lock (_childEntries) {
 					handles = _childEntries.Where(c => c.ChildWindow.IsPositionGlobal).
 						OrderByDescending(c => c.Zindex).Select(c => c.ChildWindow.Handle).ToArray();
 				}
-				WinAPI.SetWindowPos(handles[0], pos, 0, 0, 0, 0,
+				WinAPI.SetWindowPos(handles[0], WinAPI.HWND.TOPMOST, 0, 0, 0, 0,
 					WinAPI.SWP.NOMOVE | WinAPI.SWP.NOSIZE | WinAPI.SWP.NOACTIVATE);
+				if (!topMost) {
+					WinAPI.SetWindowPos(handles[0], WinAPI.HWND.NOTOPMOST, 0, 0, 0, 0,
+						WinAPI.SWP.NOMOVE | WinAPI.SWP.NOSIZE | WinAPI.SWP.NOACTIVATE);
+				}
 				for (int i = 1 ; i < handles.Length ; i++) {
 					WinAPI.SetWindowPos(handles[i], handles[i - 1], 0, 0, 0, 0,
 						WinAPI.SWP.NOMOVE | WinAPI.SWP.NOSIZE | WinAPI.SWP.NOACTIVATE);
@@ -174,7 +196,7 @@ namespace FormsHost {
 					WinAPI.SWP.NOMOVE | WinAPI.SWP.NOSIZE | WinAPI.SWP.NOACTIVATE);
 			}
 			else {
-				WinAPI.SetWindowPos(Handle, pos, 0, 0, 0, 0,
+				WinAPI.SetWindowPos(Handle, WinAPI.HWND.TOP, 0, 0, 0, 0,
 					WinAPI.SWP.NOMOVE | WinAPI.SWP.NOSIZE | WinAPI.SWP.NOACTIVATE);
 			}
 		}

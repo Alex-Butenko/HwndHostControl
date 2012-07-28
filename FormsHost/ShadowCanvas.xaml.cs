@@ -6,7 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Interop;
 //-----------------------------------------------------------------------------
 namespace FormsHost {
-	public partial class ShadowCanvas : UserControl {
+	public partial class ShadowCanvas : UserControl, IShadowCanvasForDispatcher {
 		ISystemWindow _systemWindow;
 		static List<ChildWindowsDispatcher> _childDispatchers = new List<ChildWindowsDispatcher>();
 		ChildWindowsDispatcher _childDispatcher;
@@ -55,6 +55,7 @@ namespace FormsHost {
 			_systemWindow.Grab(_childDispatcher.Handle);
 			if (_systemWindow.IsPositionGlobal) {
 				_childDispatcher.FormHostMove += OnFormHostMove;
+				_childDispatcher.FormHostMinimize += OnFormHostMinimize;
 				try {
 					WinAPI.Point point = new WinAPI.Point(0, 0);
 					WinAPI.ClientToScreen(_childDispatcher.Handle, ref point);
@@ -69,6 +70,7 @@ namespace FormsHost {
 		public void Release () {
 			if (_systemWindow.IsPositionGlobal) {
 				_childDispatcher.FormHostMove -= OnFormHostMove;
+				_childDispatcher.FormHostMinimize -= OnFormHostMinimize;
 			}
 			_systemWindow.Release();
 			_childDispatcher.RemoveChild(_systemWindow);
@@ -97,6 +99,11 @@ namespace FormsHost {
 			}
 		}
 		//---------------------------------------------------------------------
+		void OnFormHostMinimize (bool minimized) {
+			_windowVisibleState = minimized;
+			_systemWindow.Visible = _windowVisibleState && _windowVisibleUserDef;
+		}
+		//---------------------------------------------------------------------
 		public List<IntPtr> AllHandles {
 			get {
 				/*
@@ -114,5 +121,32 @@ namespace FormsHost {
 			}
 		}
 		//---------------------------------------------------------------------
+		public EventHandler FocusEnter;
+		//---------------------------------------------------------------------
+		public EventHandler FocusLeave;
+		//---------------------------------------------------------------------
+		bool _windowVisibleUserDef = true;
+		bool _windowVisibleState = true;
+		public bool WindowVisible {
+			get {
+				return _windowVisibleUserDef;
+			}
+			set {
+				_windowVisibleUserDef = value;
+				_systemWindow.Visible = _windowVisibleUserDef && _windowVisibleState;
+			}
+		}
+		//---------------------------------------------------------------------
+		void IShadowCanvasForDispatcher.RaiseFocusEnter () {
+			if (FocusEnter != null) {
+				Dispatcher.BeginInvoke(FocusEnter, this, new EventArgs());
+			}
+		}
+		//---------------------------------------------------------------------
+		void IShadowCanvasForDispatcher.RaiseFocusLeave () {
+			if (FocusLeave != null) {
+				Dispatcher.BeginInvoke(FocusLeave, this, new EventArgs());
+			}
+		}
 	}
 }
