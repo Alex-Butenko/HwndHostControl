@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
+using System.ComponentModel;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Media;
 //-----------------------------------------------------------------------------
 namespace HwndHostControl {
@@ -19,17 +20,11 @@ namespace HwndHostControl {
 		public readonly IntPtr Handle;
 		bool _hasEmbeddedChild = false;
 		bool _hasPopupChild = false;
-		StreamWriter _streamWriter = null;
 		//-----------------------------------------------------------------
 		List<ChildEntry> _childEntries;
 		//-----------------------------------------------------------------
 		public void AddChild (ISystemWindow sysWindow, ShadowCanvas canvas) {
 			lock (_childEntries) {
-				//
-				if (_childEntries.Count == 0) {
-					//			_streamWriter = new StreamWriter(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + "\\WinAPILog.txt", false);
-				}
-				//
 				_childEntries.Add(new ChildEntry() { ChildWindow = sysWindow, Canvas = canvas });
 			}
 			if (sysWindow.IsPositionGlobal) {
@@ -44,6 +39,15 @@ namespace HwndHostControl {
 				t.IsBackground = true;
 				t.Start();
 			}
+			if (canvas.KeyboardEventsTracking) {
+				if (OnKeyEvent == null) {
+					OnKeyEvent += KeyboardTracker;
+					EnableKeyboardHookProc();
+				}
+				else {
+					OnKeyEvent += KeyboardTracker;
+				}
+			}
 			_lastFocusHandle = (IntPtr) (-1);
 			CorrectOrderPopup();
 			CorrectOrderEmbedded();
@@ -52,12 +56,6 @@ namespace HwndHostControl {
 		public void RemoveChild (ISystemWindow sysWindow) {
 			lock (_childEntries) {
 				_childEntries.RemoveAll(ce => ce.ChildWindow.Handle == sysWindow.Handle);
-				//
-				if (_streamWriter != null && _childEntries.Count == 0) {
-					_streamWriter.Close();
-					_streamWriter = null;
-				}
-				//
 				if (_childEntries.Count > 0) {
 					_hasPopupChild = _childEntries.Any(c => c.ChildWindow.IsPositionGlobal);
 					_hasEmbeddedChild = _childEntries.Any(c => !c.ChildWindow.IsPositionGlobal);
@@ -74,23 +72,18 @@ namespace HwndHostControl {
 							!ce.Canvas.FocusEventsTracking)) {
 					_focusTrackerEnabled = false;
 				}
+				if (_childEntries.All(ce => !ce.Canvas.KeyboardEventsTracking)) {
+					try {
+						OnKeyEvent -= KeyboardTracker;
+					}
+					catch { }
+				}
 			}
 			_lastFocusHandle = (IntPtr) (-1);
 		}
 		//-----------------------------------------------------------------
-		void AddLog (IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam) {
-			if (_streamWriter != null) {
-				_streamWriter.WriteLine("" + DateTime.Now.Minute + ":" +
-					DateTime.Now.Second + ":" + DateTime.Now.Millisecond + "\t|\t" +
-					msg.ToString("X") + "\t|\t" + wParam.ToInt64().ToString("X8") +
-					(wParam.ToInt64().ToString("X").Length < 8 ? "\t\t|\t" : "\t|\t") +
-					lParam.ToInt64().ToString("X"));
-			}
-		}
-		//-----------------------------------------------------------------
 		bool _deactivationMode = false;
 		public IntPtr WndProc (IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled) {
-			//AddLog(hwnd, msg, wParam, lParam);
 			switch ((uint) msg) {
 				case WinAPI.WM.NCACTIVATE:
 					if (wParam == IntPtr.Zero && _focusTrackerEnabled) {
@@ -151,21 +144,23 @@ namespace HwndHostControl {
 			Action<IntPtr, IntPtr> sendFocusTrackingMessage =
 				delegate(IntPtr killFocusHandle, IntPtr setFocusHandle) {
 					if (killFocusHandle != IntPtr.Zero) {
+						ChildEntry entry = null;
 						lock (_childEntries) {
-							ChildEntry entry = _childEntries.
+							entry = _childEntries.
 								SingleOrDefault(ce => ce.ChildWindow.Handle == killFocusHandle);
-							if (entry != null && entry.Canvas.FocusEventsTracking) {
-								entry.Canvas.RaiseKillFocus();
-							}
+						}
+						if (entry != null && entry.Canvas.FocusEventsTracking) {
+							entry.Canvas.RaiseKillFocusEvent();
 						}
 					}
 					if (setFocusHandle != IntPtr.Zero) {
+						ChildEntry entry = null;
 						lock (_childEntries) {
-							ChildEntry entry = _childEntries.
+							entry = _childEntries.
 								SingleOrDefault(ce => ce.ChildWindow.Handle == setFocusHandle);
-							if (entry != null && entry.Canvas.FocusEventsTracking) {
-								entry.Canvas.RaiseSetFocus();
-							}
+						}
+						if (entry != null && entry.Canvas.FocusEventsTracking) {
+							entry.Canvas.RaiseSetFocusEvent();
 						}
 					}
 				};
@@ -271,5 +266,31 @@ namespace HwndHostControl {
 		}
 		//-----------------------------------------------------------------
 		//-----------------------------------------------------------------
+		static void EnableKeyboardHookProc () {
+			Hook.InstallKbdHook(KeyboardHookProc);
+		}
+		static event Hook.HookKeyPress OnKeyEvent;
+		static void KeyboardHookProc (Key key, bool isPressed, int time) {
+			if (OnKeyEvent != null) {
+				OnKeyEvent(key, isPressed, time);
+			}
+			else {
+				try {
+					Hook.UninstallKbdHook();
+				}
+				catch (Win32Exception e) { }
+			}
+		}
+		//-----------------------------------------------------------------
+		void KeyboardTracker (Key key, bool isPressed, int time) {
+			IntPtr handle = WinAPI.GetForegroundWindow();
+			ChildEntry entry = null;
+			lock (_childEntries) {
+				entry = _childEntries.SingleOrDefault(ce => ce.ChildWindow.Handle == handle);
+			}
+			if (entry != null && entry.Canvas.KeyboardEventsTracking) {
+				entry.Canvas.RaiseKeyboardEvent(key, isPressed, time);
+			}
+		}
 	}
 }

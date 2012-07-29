@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-
+//-----------------------------------------------------------------------------
 namespace HwndHostControl {
 	public static class WinAPI {
 		[DllImport("user32.dll")]
@@ -483,11 +483,6 @@ namespace HwndHostControl {
 			public const int ICON = MINIMIZE;
 			public const int ZOOM = MAXIMIZE;
 		}
-		/// <summary>
-		/// Windows Messages
-		/// Defined in winuser.h from Windows SDK v6.1
-		/// Documentation pulled from MSDN.
-		/// </summary>
 		public static class WM {
 			/// <summary>
 			/// The WM_NULL message performs no operation. An application sends the WM_NULL message if it wants to post a message that the recipient window will ignore.
@@ -1468,12 +1463,6 @@ namespace HwndHostControl {
 			public Point (int x, int y) {
 				this.X = x;
 				this.Y = y;
-			}
-			public static implicit operator System.Drawing.Point (Point p) {
-				return new System.Drawing.Point(p.X, p.Y);
-			}
-			public static implicit operator Point (System.Drawing.Point p) {
-				return new Point(p.X, p.Y);
 			}
 		}
 		[StructLayout(LayoutKind.Sequential)]

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Interop;
 //-----------------------------------------------------------------------------
 namespace HwndHostControl {
@@ -114,6 +115,8 @@ namespace HwndHostControl {
 		//---------------------------------------------------------------------
 		public EventHandler KillFocusEvent;
 		//---------------------------------------------------------------------
+		public EventHandler<KeyboardEventArgs> KeyboardEvent;
+		//---------------------------------------------------------------------
 		bool _windowVisibleUserDef = true;
 		bool _windowVisibleState = true;
 		public bool WindowVisible {
@@ -126,15 +129,21 @@ namespace HwndHostControl {
 			}
 		}
 		//---------------------------------------------------------------------
-		void IShadowCanvasForDispatcher.RaiseSetFocus () {
+		void IShadowCanvasForDispatcher.RaiseSetFocusEvent () {
 			if (SetFocusEvent != null) {
 				Dispatcher.BeginInvoke(SetFocusEvent, this, new EventArgs());
 			}
 		}
 		//---------------------------------------------------------------------
-		void IShadowCanvasForDispatcher.RaiseKillFocus () {
+		void IShadowCanvasForDispatcher.RaiseKillFocusEvent () {
 			if (KillFocusEvent != null) {
 				Dispatcher.BeginInvoke(KillFocusEvent, this, new EventArgs());
+			}
+		}
+		//---------------------------------------------------------------------
+		void IShadowCanvasForDispatcher.RaiseKeyboardEvent (Key key, bool isPressed, int time) {
+			if (KeyboardEvent != null) {
+				KeyboardEvent(this, new KeyboardEventArgs(key, isPressed, time));
 			}
 		}
 		//---------------------------------------------------------------------
@@ -155,6 +164,17 @@ namespace HwndHostControl {
 				return (_systemWindow.EmbeddingOptions & EmbeddingOptions.FocusEvents) ==
 					EmbeddingOptions.FocusEvents;
 			}
+		}
+		//---------------------------------------------------------------------
+		public class KeyboardEventArgs : EventArgs {
+			public KeyboardEventArgs (Key key, bool isPressed, int time) {
+				Key = key;
+				IsPressed = isPressed;
+				Time = time;
+			}
+			public readonly Key Key;
+			public readonly bool IsPressed;
+			public readonly int Time;
 		}
 	}
 }
