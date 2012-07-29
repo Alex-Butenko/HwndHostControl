@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace FormsHost {
+namespace TestWindow {
 	/// <summary>
 	/// Interaction logic for App.xaml
 	/// </summary>

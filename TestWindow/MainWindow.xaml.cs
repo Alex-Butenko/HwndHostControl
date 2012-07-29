@@ -4,8 +4,9 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
+using HwndHostControl;
 //-----------------------------------------------------------------------------
-namespace FormsHost {
+namespace TestWindow {
 	partial class MainWindow : Window {
 		List<ShadowCanvas> _canvases = new List<ShadowCanvas>();
 		List<Process> _processes = new List<Process>();

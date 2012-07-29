@@ -1,6 +1,0 @@
-﻿Win8:
-Embeddable.
-Add window.
-ShadowCanves Resize/Move.
-Delete window.
-Close window.

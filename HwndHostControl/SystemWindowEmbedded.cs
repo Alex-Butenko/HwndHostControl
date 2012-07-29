@@ -1,6 +1,6 @@
 ﻿using System;
 //-----------------------------------------------------------------------------
-namespace FormsHost {
+namespace HwndHostControl {
 	class SystemWindowEmbedded : SystemWindow, ISystemWindow {
 		public SystemWindowEmbedded (IntPtr handle, EmbeddingOptions options) : base(handle, options) {
 			if ((options & EmbeddingOptions.DontSaveMenu) == EmbeddingOptions.DontSaveMenu ||

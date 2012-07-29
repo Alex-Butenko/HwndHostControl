@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -7,7 +8,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Media;
 //-----------------------------------------------------------------------------
-namespace FormsHost {
+namespace HwndHostControl {
 	class ChildWindowsDispatcher {
 		public ChildWindowsDispatcher (IntPtr handle, Window window) {
 			Handle = handle;
@@ -27,7 +28,7 @@ namespace FormsHost {
 			lock (_childEntries) {
 				//
 				if (_childEntries.Count == 0) {
-		//			_streamWriter = new StreamWriter(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + "\\WinAPILog.txt", false);
+					//			_streamWriter = new StreamWriter(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + "\\WinAPILog.txt", false);
 				}
 				//
 				_childEntries.Add(new ChildEntry() { ChildWindow = sysWindow, Canvas = canvas });
@@ -39,7 +40,7 @@ namespace FormsHost {
 				_hasEmbeddedChild = true;
 			}
 			ZindexRecount();
-			if (!_focusTrackerEnabled && sysWindow.NeedFocusTracking) {
+			if (!_focusTrackerEnabled && sysWindow.NeedFocusTracking && canvas.FocusEventsTracking) {
 				Thread t = new Thread(FocusTracker);
 				t.IsBackground = true;
 				t.Start();
@@ -70,7 +71,8 @@ namespace FormsHost {
 			ZindexRecount();
 			lock (_childEntries) {
 				if (_focusTrackerEnabled && sysWindow.NeedFocusTracking &&
-						_childEntries.All(ce => !ce.ChildWindow.NeedFocusTracking)) {
+						_childEntries.All(ce => !ce.ChildWindow.NeedFocusTracking &&
+							!ce.Canvas.FocusEventsTracking)) {
 					_focusTrackerEnabled = false;
 				}
 			}
@@ -112,9 +114,6 @@ namespace FormsHost {
 					}
 					break;
 				case WinAPI.WM.SYSCOMMAND:
-					if (wParam == (IntPtr) 0x0000F012) {
-						_focFlag = 2;
-					}
 					if (wParam == (IntPtr) WinAPI.SC.MINIMIZE) {
 						if (FormHostMinimize != null) {
 							FormHostMinimize(false);
@@ -150,14 +149,36 @@ namespace FormsHost {
 		IntPtr _lastFocusHandle = (IntPtr) (-1);
 		bool _focusTrackerEnabled = false;
 		void FocusTracker () {
+			Action<IntPtr, IntPtr> sendFocusTrackingMessage =
+				delegate(IntPtr killFocusHandle, IntPtr setFocusHandle) {
+					if (killFocusHandle != IntPtr.Zero) {
+						lock (_childEntries) {
+							ChildEntry entry = _childEntries.
+								SingleOrDefault(ce => ce.ChildWindow.Handle == killFocusHandle);
+							if (entry != null && entry.Canvas.FocusEventsTracking) {
+								entry.Canvas.RaiseKillFocus();
+							}
+						}
+					}
+					if (setFocusHandle != IntPtr.Zero) {
+						lock (_childEntries) {
+							ChildEntry entry = _childEntries.
+								SingleOrDefault(ce => ce.ChildWindow.Handle == setFocusHandle);
+							if (entry != null && entry.Canvas.FocusEventsTracking) {
+								entry.Canvas.RaiseSetFocus();
+							}
+						}
+					}
+				};
 			_focusTrackerEnabled = true;
 			while (_focusTrackerEnabled) {
-				Thread.Sleep(50);
+				Thread.Sleep(100);
 				IntPtr handle = WinAPI.GetForegroundWindow();
 				if (handle == _lastFocusHandle) {
 					continue;
 				}
 				if (handle == Handle) {
+					sendFocusTrackingMessage.BeginInvoke(_lastFocusHandle, IntPtr.Zero, null, null);
 					_lastFocusHandle = handle;
 					continue;
 				}
@@ -174,6 +195,7 @@ namespace FormsHost {
 					CorrectOrderPopup();
 					CorrectOrderEmbedded();
 				}
+				sendFocusTrackingMessage.BeginInvoke(_lastFocusHandle, handle, null, null);
 				_lastFocusHandle = handle;
 			}
 		}
@@ -245,8 +267,10 @@ namespace FormsHost {
 		//-----------------------------------------------------------------
 		class ChildEntry {
 			public ISystemWindow ChildWindow;
-			public ShadowCanvas Canvas;
+			public IShadowCanvasForDispatcher Canvas;
 			public int Zindex;
 		}
+		//-----------------------------------------------------------------
+		//-----------------------------------------------------------------
 	}
 }

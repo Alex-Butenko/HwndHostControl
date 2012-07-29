@@ -1,6 +1,6 @@
 ﻿using System;
 //-----------------------------------------------------------------------------
-namespace FormsHost {
+namespace HwndHostControl {
 	interface ISystemWindow {
 		IntPtr[] AllHandles { get; set; }
 		bool Embeddable { get; set; }

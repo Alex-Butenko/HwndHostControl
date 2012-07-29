@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace FormsHost {
+namespace HwndHostControl {
 	public static class WinAPI {
 		[DllImport("user32.dll")]
 		public static extern bool ClientToScreen (IntPtr hWnd, ref WinAPI.Point lpPoint);

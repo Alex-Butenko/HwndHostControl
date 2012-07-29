@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 //-----------------------------------------------------------------------------
-namespace FormsHost {
+namespace HwndHostControl {
 	class SystemWindowPopup : SystemWindow, ISystemWindow {
 		public SystemWindowPopup (IntPtr handle, EmbeddingOptions options) : base(handle, options) {
 		}

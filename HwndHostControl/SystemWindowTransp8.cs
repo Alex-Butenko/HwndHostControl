@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 //-----------------------------------------------------------------------------
-namespace FormsHost {
+namespace HwndHostControl {
 	class SystemWindowTransp8 : SystemWindowEmbedded, ISystemWindow {
 		public SystemWindowTransp8 (IntPtr handle, EmbeddingOptions options) : base(handle, options) { }
 		//---------------------------------------------------------------------

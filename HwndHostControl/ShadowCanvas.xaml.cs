@@ -5,7 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
 //-----------------------------------------------------------------------------
-namespace FormsHost {
+namespace HwndHostControl {
 	public partial class ShadowCanvas : UserControl, IShadowCanvasForDispatcher {
 		ISystemWindow _systemWindow;
 		static List<ChildWindowsDispatcher> _childDispatchers = new List<ChildWindowsDispatcher>();
@@ -104,26 +104,15 @@ namespace FormsHost {
 			_systemWindow.Visible = _windowVisibleState && _windowVisibleUserDef;
 		}
 		//---------------------------------------------------------------------
-		public List<IntPtr> AllHandles {
-			get {
-				/*
-				List<IntPtr> handles = _dependentWindow.AllDescendantWindows.Select(w => w.HWnd).ToList();
-				handles.Add(_dependentWindow.HWnd);
-				return handles;
-				*/
-				return null;
-			}
-		}
-		//---------------------------------------------------------------------
 		public IntPtr Handle {
 			get {
 				return _systemWindow.Handle;
 			}
 		}
 		//---------------------------------------------------------------------
-		public EventHandler FocusEnter;
+		public EventHandler SetFocusEvent;
 		//---------------------------------------------------------------------
-		public EventHandler FocusLeave;
+		public EventHandler KillFocusEvent;
 		//---------------------------------------------------------------------
 		bool _windowVisibleUserDef = true;
 		bool _windowVisibleState = true;
@@ -137,15 +126,34 @@ namespace FormsHost {
 			}
 		}
 		//---------------------------------------------------------------------
-		void IShadowCanvasForDispatcher.RaiseFocusEnter () {
-			if (FocusEnter != null) {
-				Dispatcher.BeginInvoke(FocusEnter, this, new EventArgs());
+		void IShadowCanvasForDispatcher.RaiseSetFocus () {
+			if (SetFocusEvent != null) {
+				Dispatcher.BeginInvoke(SetFocusEvent, this, new EventArgs());
 			}
 		}
 		//---------------------------------------------------------------------
-		void IShadowCanvasForDispatcher.RaiseFocusLeave () {
-			if (FocusLeave != null) {
-				Dispatcher.BeginInvoke(FocusLeave, this, new EventArgs());
+		void IShadowCanvasForDispatcher.RaiseKillFocus () {
+			if (KillFocusEvent != null) {
+				Dispatcher.BeginInvoke(KillFocusEvent, this, new EventArgs());
+			}
+		}
+		//---------------------------------------------------------------------
+		public bool KeyboardEventsTracking {
+			get {
+				return (_systemWindow.EmbeddingOptions & EmbeddingOptions.KeyboardEvents) ==
+					EmbeddingOptions.KeyboardEvents;
+			}
+		}
+		public bool MouseEventsTracking {
+			get {
+				return (_systemWindow.EmbeddingOptions & EmbeddingOptions.MouseEvents) ==
+					EmbeddingOptions.MouseEvents;
+			}
+		}
+		public bool FocusEventsTracking {
+			get {
+				return (_systemWindow.EmbeddingOptions & EmbeddingOptions.FocusEvents) ==
+					EmbeddingOptions.FocusEvents;
 			}
 		}
 	}

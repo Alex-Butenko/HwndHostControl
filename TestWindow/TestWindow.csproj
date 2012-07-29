@@ -7,8 +7,8 @@
     <ProjectGuid>{7A975A92-F176-4578-BB01-FD0131025D5A}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>FormsHost</RootNamespace>
-    <AssemblyName>FormsHost</AssemblyName>
+    <RootNamespace>TestWindow</RootNamespace>
+    <AssemblyName>TestWindow</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -48,18 +48,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="ChildWindowsDispatcher.cs" />
-    <Compile Include="EmbeddingOptions.cs" />
-    <Compile Include="IShadowCanvasForDispatcher.cs" />
-    <Compile Include="ISystemWindow.cs" />
-    <Compile Include="ShadowCanvas.xaml.cs">
-      <DependentUpon>ShadowCanvas.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="SystemWindow.cs" />
-    <Compile Include="SystemWindowEmbedded.cs" />
-    <Compile Include="SystemWindowPopup.cs" />
-    <Compile Include="SystemWindowTransp8.cs" />
-    <Compile Include="WinAPI.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -72,10 +60,6 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="ShadowCanvas.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
@@ -103,7 +87,10 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Scheme.txt" />
+    <ProjectReference Include="..\HwndHostControl\HwndHostControl.csproj">
+      <Project>{f250bb2e-62e2-4397-a883-10491caa0688}</Project>
+      <Name>HwndHostControl</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

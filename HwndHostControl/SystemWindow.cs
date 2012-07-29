@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 //-----------------------------------------------------------------------------
-namespace FormsHost {
+namespace HwndHostControl {
 	abstract class SystemWindow {
 		public static ISystemWindow GetSystemWindow (IntPtr handle, EmbeddingOptions options) {
 			if ((options & EmbeddingOptions.ForcedPopup) == EmbeddingOptions.ForcedPopup) {
