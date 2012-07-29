@@ -77,63 +77,63 @@ namespace FormsHost {
 			/// <summary>
 			/// If the calling thread and the thread that owns the window are attached to different input queues, the system posts the request to the thread that owns the window. This prevents the calling thread from blocking its execution while other threads process the request.
 			/// </summary>
-			public const uint ASYNCWINDOWPOS = 0x4000;
+			public const int ASYNCWINDOWPOS = 0x4000;
 				/// <summary>
 				/// Prevents generation of the WM_SYNCPAINT message.
 				/// </summary>
-			public const uint DEFERERASE = 0x2000;
+			public const int DEFERERASE = 0x2000;
 				/// <summary>
 				/// Draws a frame (defined in the window's class description) around the window.
 				/// </summary>
-			public const uint DRAWFRAME = 0x0020;
+			public const int DRAWFRAME = 0x0020;
 				/// <summary>
 				/// Applies new frame styles set using the SetWindowLong function. Sends a WM_NCCALCSIZE message to the window, even if the window's size is not being changed. If this flag is not specified, WM_NCCALCSIZE is sent only when the window's size is being changed.
 				/// </summary>
-			public const uint FRAMECHANGED = 0x0020;
+			public const int FRAMECHANGED = 0x0020;
 				/// <summary>
 				/// Hides the window.
 				/// </summary>
-			public const uint HIDEWINDOW = 0x0080;
+			public const int HIDEWINDOW = 0x0080;
 				/// <summary>
 				/// Does not activate the window. If this flag is not set, the window is activated and moved to the top of either the topmost or non-topmost group (depending on the setting of the hWndInsertAfter parameter).
 				/// </summary>
-			public const uint NOACTIVATE = 0x0010;
+			public const int NOACTIVATE = 0x0010;
 				/// <summary>
 				/// Discards the entire contents of the client area. If this flag is not specified, the valid contents of the client area are saved and copied back into the client area after the window is sized or repositioned.
 				/// </summary>
-			public const uint NOCOPYBITS = 0x0100;
+			public const int NOCOPYBITS = 0x0100;
 				/// <summary>
 				/// Retains the current position (ignores X and Y parameters).
 				/// </summary>
-			public const uint NOMOVE = 0x0002;
+			public const int NOMOVE = 0x0002;
 				/// <summary>
 				/// Does not change the owner window's position in the Z order.
 				/// </summary>
-			public const uint NOOWNERZORDER = 0x0200;
+			public const int NOOWNERZORDER = 0x0200;
 				/// <summary>
 				/// Does not redraw changes. If this flag is set, no repainting of any kind occurs. This applies to the client area, the nonclient area (including the title bar and scroll bars), and any part of the parent window uncovered as a result of the window being moved. When this flag is set, the application must explicitly invalidate or redraw any parts of the window and parent window that need redrawing.
 				/// </summary>
-			public const uint NOREDRAW = 0x0008;
+			public const int NOREDRAW = 0x0008;
 				/// <summary>
 				/// Same as the SWP_NOOWNERZORDER flag.
 				/// </summary>
-			public const uint NOREPOSITION = 0x0200;
+			public const int NOREPOSITION = 0x0200;
 				/// <summary>
 				/// Prevents the window from receiving the WM_WINDOWPOSCHANGING message.
 				/// </summary>
-			public const uint NOSENDCHANGING = 0x0400;
+			public const int NOSENDCHANGING = 0x0400;
 				/// <summary>
 				/// Retains the current size (ignores the cx and cy parameters).
 				/// </summary>
-			public const uint NOSIZE = 0x0001;
+			public const int NOSIZE = 0x0001;
 				/// <summary>
 				/// Retains the current Z order (ignores the hWndInsertAfter parameter).
 				/// </summary>
-			public const uint NOZORDER = 0x0004;
+			public const int NOZORDER = 0x0004;
 				/// <summary>
 				/// Displays the window.
 				/// </summary>
-			public const uint SHOWWINDOW = 0x0040;
+			public const int SHOWWINDOW = 0x0040;
 		}
 		public static class HWND {
 			/// <summary>
@@ -510,7 +510,7 @@ namespace FormsHost {
 				/// The WM_SIZE message is sent to a window after its size has changed.
 				/// </summary>
 			public const uint SIZE = 0x0005;
-				/// <summary;
+				/// <summary>
 				/// The WM_ACTIVATE message is sent to both the window being activated and the window being deactivated. If the windows use the same input queue, the message is sent synchronously, first to the window procedure of the top-level window being deactivated, then to the window procedure of the top-level window being activated. If the windows use different input queues, the message is sent asynchronously, so the window is activated immediately. 
 				/// </summary>
 			public const uint ACTIVATE = 0x0006;
@@ -1475,6 +1475,16 @@ namespace FormsHost {
 			public static implicit operator Point (System.Drawing.Point p) {
 				return new Point(p.X, p.Y);
 			}
+		}
+		[StructLayout(LayoutKind.Sequential)]
+		public struct WINDOWPOS {
+			public IntPtr hwnd;
+			public IntPtr hwndInsertAfter;
+			public int x;
+			public int y;
+			public int cx;
+			public int cy;
+			public int flags;
 		}
 	}
 }

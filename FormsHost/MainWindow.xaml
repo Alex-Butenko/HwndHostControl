@@ -8,7 +8,7 @@
 		<Grid x:Name="Grid5" Background="MidnightBlue" Margin="0,215.5,448.5,0"/>
 		<Grid x:Name="Grid3" Background="Blue" Margin="297.5,139.5,224.5,71.5"/>
 		<Grid x:Name="Grid6" Background="Yellow" Margin="412.5,0,0,215.5"/>
-		<Grid x:Name="Grid4" Background="DarkMagenta" Margin="412.5,296.5,0,-81"/>
+		<Grid x:Name="Grid4" Background="DarkMagenta" Margin="432,265,-19.5,-49.5"/>
 		<Grid x:Name="Grid7" Background="Orange" Margin="165,296.5,448.5,113"/>
 	</Grid>
 </Window>

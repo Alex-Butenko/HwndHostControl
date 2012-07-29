@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -18,11 +19,17 @@ namespace FormsHost {
 		public readonly IntPtr Handle;
 		bool _hasEmbeddedChild = false;
 		bool _hasPopupChild = false;
+		StreamWriter _streamWriter = null;
 		//-----------------------------------------------------------------
 		List<ChildEntry> _childEntries;
 		//-----------------------------------------------------------------
 		public void AddChild (ISystemWindow sysWindow, ShadowCanvas canvas) {
 			lock (_childEntries) {
+				//
+				if (_childEntries.Count == 0) {
+		//			_streamWriter = new StreamWriter(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + "\\WinAPILog.txt", false);
+				}
+				//
 				_childEntries.Add(new ChildEntry() { ChildWindow = sysWindow, Canvas = canvas });
 			}
 			if (sysWindow.IsPositionGlobal) {
@@ -45,7 +52,13 @@ namespace FormsHost {
 		public void RemoveChild (ISystemWindow sysWindow) {
 			lock (_childEntries) {
 				_childEntries.RemoveAll(ce => ce.ChildWindow.Handle == sysWindow.Handle);
-				if (_childEntries.Count < 0) {
+				//
+				if (_streamWriter != null && _childEntries.Count == 0) {
+					_streamWriter.Close();
+					_streamWriter = null;
+				}
+				//
+				if (_childEntries.Count > 0) {
 					_hasPopupChild = _childEntries.Any(c => c.ChildWindow.IsPositionGlobal);
 					_hasEmbeddedChild = _childEntries.Any(c => !c.ChildWindow.IsPositionGlobal);
 				}
@@ -64,8 +77,19 @@ namespace FormsHost {
 			_lastFocusHandle = (IntPtr) (-1);
 		}
 		//-----------------------------------------------------------------
+		void AddLog (IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam) {
+			if (_streamWriter != null) {
+				_streamWriter.WriteLine("" + DateTime.Now.Minute + ":" +
+					DateTime.Now.Second + ":" + DateTime.Now.Millisecond + "\t|\t" +
+					msg.ToString("X") + "\t|\t" + wParam.ToInt64().ToString("X8") +
+					(wParam.ToInt64().ToString("X").Length < 8 ? "\t\t|\t" : "\t|\t") +
+					lParam.ToInt64().ToString("X"));
+			}
+		}
+		//-----------------------------------------------------------------
 		bool _deactivationMode = false;
 		public IntPtr WndProc (IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled) {
+			//AddLog(hwnd, msg, wParam, lParam);
 			switch ((uint) msg) {
 				case WinAPI.WM.NCACTIVATE:
 					if (wParam == IntPtr.Zero && _focusTrackerEnabled) {
@@ -78,7 +102,19 @@ namespace FormsHost {
 						}
 					}
 					break;
+				case WinAPI.WM.WINDOWPOSCHANGING:
+					WinAPI.WINDOWPOS pos = (WinAPI.WINDOWPOS) Marshal.PtrToStructure(lParam, typeof(WinAPI.WINDOWPOS));
+					if ((pos.flags & WinAPI.SWP.NOZORDER) != WinAPI.SWP.NOZORDER &&
+						(pos.flags & WinAPI.SWP.NOACTIVATE) != WinAPI.SWP.NOACTIVATE) {
+						pos.flags = pos.flags | WinAPI.SWP.NOZORDER;
+						Marshal.StructureToPtr(pos, lParam, true);
+						CorrectOrderPopup();
+					}
+					break;
 				case WinAPI.WM.SYSCOMMAND:
+					if (wParam == (IntPtr) 0x0000F012) {
+						_focFlag = 2;
+					}
 					if (wParam == (IntPtr) WinAPI.SC.MINIMIZE) {
 						if (FormHostMinimize != null) {
 							FormHostMinimize(false);
@@ -100,6 +136,8 @@ namespace FormsHost {
 						catch (OverflowException e) { }
 					}
 					break;
+				default:
+					break;
 			}
 			return IntPtr.Zero;
 		}
@@ -119,11 +157,15 @@ namespace FormsHost {
 				if (handle == _lastFocusHandle) {
 					continue;
 				}
+				if (handle == Handle) {
+					_lastFocusHandle = handle;
+					continue;
+				}
 				bool flag;
 				lock (_childEntries) {
 					flag = _childEntries.Any(ce => ce.ChildWindow.Handle == handle);
 				}
-				if (handle != Handle && !flag) {
+				if (!flag) {
 					_deactivationMode = true;
 					WinAPI.SendMessage(_handleRef, WinAPI.WM.NCACTIVATE, IntPtr.Zero, IntPtr.Zero);
 				}
